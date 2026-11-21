@@ -60,7 +60,9 @@ body{min-height:100svh;overflow-x:hidden;background:var(--bg);color:var(--tx);fo
 .subjects{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:28px auto 0;text-align:left}
 .subj{flex:1 1 100%;min-width:0}
 @media (min-width:600px){.subj{flex:0 1 calc(50% - 6px)}}
-@media (min-width:900px){.subjects{flex-wrap:nowrap}.subj{flex:0 1 320px}}
+@media (min-width:900px){.subj{flex:0 1 320px}}
+/* Exam and Review always sit after every subject card, wherever new subjects are added in the markup */
+.subj.end{order:99}
 .page{padding:calc(var(--nav-top) + var(--nav-h) + 30px) 16px 48px;min-height:100svh}
 [hidden]{display:none!important}
 .page h2{margin:0 0 6px;font-size:1.5rem;background:linear-gradient(135deg,var(--h1a),var(--brand));-webkit-background-clip:text;background-clip:text;color:transparent;width:max-content;max-width:100%}
@@ -105,7 +107,9 @@ body{min-height:100svh;overflow-x:hidden;background:var(--bg);color:var(--tx);fo
 <main class="hero"><div>
  <h1>Med Quiz Guide</h1>
  <p>Study, test and remember. Built by students, for students.</p>
- <div class="subjects"><a class="cbtn subj" href="#anatomy"><b>Anatomy</b><span>MCQs, labelling diagrams, flashcards and exams</span></a></div>
+ <div class="subjects"><a class="cbtn subj" href="#anatomy"><b>Anatomy</b><span>MCQs, labelling diagrams and flashcards</span></a>
+  <a class="cbtn subj end" href="#exam"><b>Exam</b><span>Timed, one question at a time, with calculator</span></a>
+  <a class="cbtn subj end" href="#review"><b>Review</b><span>Weak topics, starred and missed questions</span></a></div>
 </div></main>
 <section class="page" id="anatomy" hidden>
  <h2>Anatomy</h2>
