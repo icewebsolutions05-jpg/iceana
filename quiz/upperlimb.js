@@ -326,20 +326,59 @@ const REAL=[
 const L=[...REAL,...L_OLD.filter(d=>/nerve|Carpal/i.test(d.title)).map(d=>({...d,title:d.title.replace(/^\d+\.\s*/,'')+' (schematic)'}))];
 
 
+const st2=document.createElement('style');st2.textContent=`
+.ql .stb{float:right;width:40px;height:40px;margin:-4px 0 4px 8px;padding:0;border:1px solid var(--bd);border-radius:50%;background:var(--card);color:var(--mu);font-size:1.2rem;line-height:1;cursor:pointer}
+.ql .stb.on{color:#e7a600;border-color:#e7a600}
+.ql .fcard{min-height:170px;cursor:pointer}
+.ql .fa{margin-top:12px;padding:12px;border-radius:10px;background:var(--okb);border:1px solid var(--ok)}
+.ql .fnav,.ql .fj{display:flex;gap:8px;margin:0 0 10px}
+.ql .fnav button,.ql .fj button{flex:1;min-height:48px;border:1px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);cursor:pointer}
+.ql .fnav .pri{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+.ql .fj .no{border-color:var(--no);color:var(--no);background:var(--nob)}
+.ql .fj .yes{border-color:var(--ok);color:var(--ok);background:var(--okb)}
+.ql .wk{display:grid;gap:10px;margin:0 0 6px}
+.ql .wr{border:1px solid var(--bd);background:var(--card);border-radius:12px;padding:10px 12px}
+.ql .wh{display:flex;justify-content:space-between;gap:8px;font-size:.92rem;margin:0 0 6px}
+.ql .wh span{color:var(--mu)}
+.ql .wb{height:8px;border-radius:8px;background:var(--bd);overflow:hidden}
+.ql .wb i{display:block;height:100%;border-radius:8px}
+.ql .wr button{margin-top:8px;min-height:40px;padding:0 12px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);cursor:pointer}
+@media (min-width:900px){.ql .wk{grid-template-columns:1fr 1fr}}
+`;document.head.appendChild(st2);
+
 const K='ice.ul.v1';
 const hash=s=>{let h=5381;for(let i=0;i<s.length;i++)h=(h*33^s.charCodeAt(i))>>>0;return h.toString(36)};
-const ld=()=>{try{const d=JSON.parse(localStorage.getItem(K));if(d&&typeof d==='object')return{cur:d.cur||null,hist:d.hist||[],miss:d.miss||{}}}catch(e){}return{cur:null,hist:[],miss:{}}};
+const ld=()=>{try{const d=JSON.parse(localStorage.getItem(K));if(d&&typeof d==='object')return{cur:d.cur||null,hist:d.hist||[],miss:d.miss||{},star:d.star||{},topics:d.topics||{}}}catch(e){}return{cur:null,hist:[],miss:{},star:{},topics:{}}};
 const upd=f=>{const d=ld();f(d);try{localStorage.setItem(K,JSON.stringify(d))}catch(e){}return d};
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const ALL=[];SECTIONS.forEach(([t,qs])=>qs.forEach(q=>ALL.push({...q,t,id:hash(q.q)})));
 const BYID={};ALL.forEach(q=>BYID[q.id]=q);
+/* every diagram pin is also a question: id 'd<diagram>.<pin>', topic 'Diagrams' */
+const DT='Diagrams',DALL=[];
+L.forEach((d,di)=>d.pins.forEach((p,i)=>{const q={q:'What is the structure marked '+(i+1)+'?',a:p[4],d:p[5],e:'Answer: '+p[4]+'.',t:DT,id:'d'+di+'.'+i,dg:[di,i]};DALL.push(q);BYID[q.id]=q}));
+const ITEMS=ALL.concat(DALL),esc=t=>String(t).replace(/&/g,'&amp;');
+const tadd=(x,t,ok)=>{const r=x.topics[t]||(x.topics[t]=[0,0]);r[1]++;if(ok)r[0]++};
+let pend=null,qroot=null,kd=null;
+function starBtn(id,cb){const b=document.createElement('button'),on=()=>!!ld().star[id];b.type='button';b.className='stb';
+  const sync=()=>{const s=on();b.classList.toggle('on',s);b.textContent=s?'\u2605':'\u2606';b.setAttribute('aria-pressed',s);b.setAttribute('aria-label',s?'Unstar question':'Star question')};
+  b.onclick=e=>{e.stopPropagation();const s=!on();upd(x=>{if(s)x.star[id]=1;else delete x.star[id]});sync();cb&&cb(s)};sync();return b}
+function dsvg(di,i){
+  const d=L[di],img=d.img,k=img?(d.k||img.w/400*0.75):1,bw=28*k,bh=24*k,p=d.pins[i];
+  let [tx,ty,bx,by]=p;if(p[6]==='c'){bx=tx-bw/2;by=ty-bh/2}
+  const vb=img?`0 0 ${img.w} ${img.h}`:'0 0 400 320';
+  const pic=img?`<image href="${img.src}" x="0" y="0" width="${img.w}" height="${img.h}"/>${d.extra||''}`:d.shapes;
+  return `<svg viewBox="${vb}">${pic}<g class="pin"><line x1="${bx+bw/2}" y1="${by+bh/2}" x2="${tx}" y2="${ty}" stroke-width="${1.2*k}"/><circle cx="${tx}" cy="${ty}" r="${3.5*k}"/><rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="${5*k}" stroke-width="${1.6*k}"/><text x="${bx+bw/2}" y="${by+bh*0.7}" text-anchor="middle" font-size="${13*k}">${i+1}</text></g></svg>`;
+}
+
 const LTOT=L.reduce((a,d)=>a+d.pins.length,0);
 const TOPICS=SECTIONS.map(s=>s[0]);
 
 /* one MCQ card, used by the quiz and by the review page */
 function mcqCard(q,label,o){
   const c=document.createElement('div');c.className='card mq';c.dataset.t=q.t;
-  c.innerHTML=`<div class="qh"><span class="topic">${label}</span><div class="q">${q.q}</div></div><div class="os"></div>`;
+  c.innerHTML=`<div class="qh"><span class="topic">${esc(label)}</span><div class="q">${q.q}</div>${q.dg?`<div class="zr"><span class="sub">${esc(L[q.dg[0]].title)}</span><button class="zb" type="button">Zoom</button></div><div class="sv">${dsvg(q.dg[0],q.dg[1])}</div>`:''}</div><div class="os"></div>`;
+  const qh=c.querySelector('.qh');qh.insertBefore(starBtn(q.id,o.onStar),qh.firstChild);
+  const zb=c.querySelector('.zb');if(zb)zb.onclick=()=>{zb.textContent=c.querySelector('.sv').classList.toggle('z')?'Fit':'Zoom'};
   const os=c.querySelector('.os');let done=false;
   const lock=v=>{done=true;c.classList.add('done');
     c.querySelectorAll('.opt').forEach(x=>{x.classList.add('lock');if(x.dataset.v===q.a)x.classList.add('ok');else if(x.dataset.v===v)x.classList.add('no')});
@@ -350,24 +389,25 @@ function mcqCard(q,label,o){
   return c;
 }
 
-const TPL='<div class="hd"><div class="tabs"><button id="tM" class="on">100 MCQs</button><button id="tL">Labelling (11)</button></div><p class="score" id="score"></p><div class="bar"><i id="bar"></i></div></div><div class="tools"><select id="topic" aria-label="Topic"></select><button id="shuf">Shuffle</button><button id="rst">Finish &amp; restart</button></div><p class="kb">Keys: A–E or 1–5 to answer · N for next unanswered</p><div id="mcq"></div><div id="lab" class="hide"></div>';
+const TPL='<div class="hd"><div class="tabs"><button id="tM" class="on">100 MCQs</button><button id="tL">Labelling (11)</button><button id="tF">Flashcards</button></div><p class="score" id="score"></p><div class="bar"><i id="bar"></i></div></div><div class="tools"><select id="topic" aria-label="Topic"></select><button id="shuf">Shuffle</button><button id="rst">Finish &amp; restart</button></div><p class="kb">Keys: A–E or 1–5 to answer · N for next unanswered</p><div id="mcq"></div><div id="lab" class="hide"></div><div id="fc" class="hide"></div>';
 
 function mount(root){
+  const sub=pend;pend=null;qroot=root;
   root.classList.add('ql');root.innerHTML=TPL;
-  const $=s=>root.querySelector(s),box=$('#mcq'),lab=$('#lab');
+  const $=s=>root.querySelector(s),box=$('#mcq'),lab=$('#lab'),fc=$('#fc');
   const newCur=sh=>({ord:(sh?shuffle(ALL):ALL).map(q=>q.id),a:{},l:{},t:Date.now()});
-  let cur=ld().cur;
-  if(!(cur&&cur.ord&&cur.ord.length===ALL.length&&new Set(cur.ord).size===ALL.length&&cur.ord.every(id=>BYID[id])))cur=newCur(false);
+  let cur=sub?{ord:sub.slice(),a:{},l:{},t:Date.now()}:ld().cur;
+  if(!sub&&!(cur&&cur.ord&&cur.ord.length===ALL.length&&new Set(cur.ord).size===ALL.length&&cur.ord.every(id=>BYID[id])))cur=newCur(false);
   cur.a=cur.a||{};cur.l=cur.l||{};
-  const save=(f)=>upd(x=>{x.cur=cur;f&&f(x)});
+  const save=(f)=>upd(x=>{if(!sub)x.cur=cur;f&&f(x)});
   const lkey=(di,i)=>di+'.'+i;
   function stats(){let mc=0,md=0,lc=0,lg=0;
     for(const id in cur.a)if(BYID[id]){md++;if(cur.a[id]===BYID[id].a)mc++}
     for(const k in cur.l){const [di,i]=k.split('.');const p=L[di]&&L[di].pins[i];if(p){lg++;if(cur.l[k]===p[4])lc++}}
     return{mc,md,lc,lg}}
   function score(){const s=stats();
-    $('#score').textContent=`MCQs: ${s.mc}/${s.md} correct (of ${ALL.length}) · Labelling: ${s.lc}/${s.lg} correct (of ${LTOT})`;
-    $('#bar').style.width=((s.md+s.lg)/(ALL.length+LTOT)*100)+'%'}
+    $('#score').textContent=`MCQs: ${s.mc}/${s.md} correct (of ${cur.ord.length}) · Labelling: ${s.lc}/${s.lg} correct (of ${LTOT})`;
+    $('#bar').style.width=(sub?s.md/cur.ord.length*100:(s.md+s.lg)/(ALL.length+LTOT)*100)+'%'}
 
   $('#topic').innerHTML='<option value="">All topics</option>'+TOPICS.map(t=>`<option>${t}</option>`).join('');
   const filter=()=>{const t=$('#topic').value;box.querySelectorAll('.card.mq').forEach(c=>{c.hidden=!!t&&c.dataset.t!==t})};
@@ -376,7 +416,7 @@ function mount(root){
   function buildMCQ(){
     box.innerHTML='';
     cur.ord.forEach((id,n)=>{const q=BYID[id];
-      box.appendChild(mcqCard(q,`${n+1}/${ALL.length} · ${q.t}`,{saved:cur.a[id],onAnswer:(r,t)=>{cur.a[id]=t;save(x=>{if(!r)x.miss[id]=(x.miss[id]||0)+1});score()}}))});
+      box.appendChild(mcqCard(q,`${n+1}/${cur.ord.length} · ${q.t}`,{saved:cur.a[id],onAnswer:(r,t)=>{cur.a[id]=t;save(x=>{if(!r)x.miss[id]=(x.miss[id]||0)+1});score()}}))});
     filter();score();
   }
 
@@ -419,18 +459,47 @@ function mount(root){
 
   let labBuilt=false;
   function tab(m){
-    if(!m&&!labBuilt){buildLab();labBuilt=true}
-    box.classList.toggle('hide',!m);lab.classList.toggle('hide',m);
-    $('#tM').classList.toggle('on',m);$('#tL').classList.toggle('on',!m);
-    $('.tools').classList.toggle('hide',!m);$('.kb').classList.toggle('hide',!m);
+    if(m==='l'&&!labBuilt){buildLab();labBuilt=true}
+    if(m==='f')buildFC();
+    box.classList.toggle('hide',m!=='m');lab.classList.toggle('hide',m!=='l');fc.classList.toggle('hide',m!=='f');
+    $('#tM').classList.toggle('on',m==='m');$('#tL').classList.toggle('on',m==='l');$('#tF').classList.toggle('on',m==='f');
+    $('.tools').classList.toggle('hide',m!=='m');$('.kb').classList.toggle('hide',m!=='m');$('#score').hidden=$('.bar').hidden=m==='f';
     scrollTo(0,0);
   }
-  $('#tM').onclick=()=>tab(true);$('#tL').onclick=()=>tab(false);
+  $('#tM').onclick=()=>tab('m');$('#tL').onclick=()=>tab('l');$('#tF').onclick=()=>tab('f');
+  if(sub){$('#tL').hidden=$('#tF').hidden=$('#topic').hidden=$('#shuf').hidden=true;$('#tM').textContent='Practice ('+sub.length+')';$('#rst').textContent='Finish practice'}
+
+  /* ---------- flashcards: question, tap to reveal, then Knew it / Didn't know (misses go to review) ---------- */
+  let deck=[],fi=0,rev=false;
+  function buildFC(){
+    fc.innerHTML=`<div class="tools"><select id="ftopic" aria-label="Topic"><option value="">All topics</option>${TOPICS.concat(DT).map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('')}</select><button id="fsh" type="button">Shuffle</button></div><p class="kb">Keys: Space to flip \u00b7 \u2190 \u2192 to move</p><div class="card fcard" id="fcard"></div><div class="fnav"><button id="fpv" type="button">\u2190 Prev</button><button id="ffl" class="pri" type="button">Show answer</button><button id="fnx" type="button">Next \u2192</button></div><div class="fj" id="fj" hidden><button class="no" id="fno" type="button">Didn't know</button><button class="yes" id="fyes" type="button">Knew it</button></div><p class="score" id="fpos"></p>`;
+    const set=sh=>{const t=fc.querySelector('#ftopic').value;deck=ITEMS.filter(q=>!t||q.t===t);if(sh)deck=shuffle(deck);fi=0;rev=false;fcDraw()};
+    fc.querySelector('#ftopic').onchange=function(){this.blur();set(false)};
+    fc.querySelector('#fsh').onclick=()=>set(true);
+    fc.querySelector('#fpv').onclick=()=>fcMove(-1);fc.querySelector('#fnx').onclick=()=>fcMove(1);fc.querySelector('#ffl').onclick=fcFlip;
+    fc.querySelector('#fyes').onclick=()=>fcMove(1);
+    fc.querySelector('#fno').onclick=()=>{const q=deck[fi];if(q)upd(x=>{x.miss[q.id]=(x.miss[q.id]||0)+1});fcMove(1)};
+    fc.querySelector('#fcard').onclick=e=>{if(!e.target.closest('button'))fcFlip()};
+    set(false);
+  }
+  function fcDraw(){
+    const q=deck[fi],card=fc.querySelector('#fcard');
+    fc.querySelector('#fpos').textContent=deck.length?`${fi+1} / ${deck.length}`:'';
+    fc.querySelector('#ffl').textContent=rev?'Hide answer':'Show answer';fc.querySelector('#fj').hidden=!rev||!q;
+    if(!q){card.innerHTML='<p class="empty">No cards for this topic.</p>';return}
+    card.innerHTML=`<div class="qh"><span class="topic">${esc(q.t)}</span><div class="q">${q.q}</div>${q.dg?`<div class="sv">${dsvg(q.dg[0],q.dg[1])}</div>`:''}</div>${rev?`<div class="fa"><b>${esc(q.a)}</b>${q.dg?'':`<div class="exp">${q.e}</div>`}</div>`:'<p class="sub">Tap the card to reveal the answer.</p>'}`;
+    const qh=card.querySelector('.qh');qh.insertBefore(starBtn(q.id),qh.firstChild);
+  }
+  function fcFlip(){if(!deck.length)return;rev=!rev;fcDraw()}
+  function fcMove(d){if(!deck.length)return;fi=(fi+d+deck.length)%deck.length;rev=false;fcDraw();scrollTo(0,0)}
 
   /* finishing a test (restart or shuffle) archives its result into history */
   function restart(sh){
     const s=stats();
-    upd(x=>{if(s.md+s.lg>0){x.hist.unshift({t:Date.now(),m:[s.mc,s.md],l:[s.lc,s.lg]});x.hist=x.hist.slice(0,50)}x.cur=null});
+    upd(x=>{for(const id in cur.a){const q=BYID[id];if(q)tadd(x,q.t,cur.a[id]===q.a)}
+      for(const k in cur.l){const [di,i]=k.split('.'),p=L[di]&&L[di].pins[i];if(p)tadd(x,DT,cur.l[k]===p[4])}
+      if(s.md+s.lg>0){x.hist.unshift({t:Date.now(),m:[s.mc,s.md],l:[s.lc,s.lg]});x.hist=x.hist.slice(0,50)}if(!sub)x.cur=null});
+    if(sub){mount(root);scrollTo(0,0);return}
     cur=newCur(sh);save();buildMCQ();if(labBuilt)buildLab();scrollTo(0,0);
   }
   $('#shuf').onclick=()=>restart(true);$('#rst').onclick=()=>restart(false);
@@ -440,16 +509,23 @@ function mount(root){
     const cs=[...box.querySelectorAll('.card.mq:not(.done)')].filter(c=>!c.hidden);
     return cs.find(c=>c.getBoundingClientRect().bottom>top+40)||cs[0]};
   const mark=c=>{box.querySelectorAll('.cur').forEach(x=>x.classList.remove('cur'));c&&c.classList.add('cur')};
-  document.addEventListener('keydown',e=>{
+  if(kd)document.removeEventListener('keydown',kd);
+  kd=e=>{
     if(e.ctrlKey||e.metaKey||e.altKey||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;
-    if(!root.offsetParent||box.classList.contains('hide'))return;
+    if(!root.offsetParent)return;
+    if(!fc.classList.contains('hide')){const k=e.key;
+      if(k===' '){e.preventDefault();if(document.activeElement&&document.activeElement.tagName==='BUTTON')document.activeElement.blur();fcFlip()}
+      else if(k==='ArrowRight'){e.preventDefault();fcMove(1)}else if(k==='ArrowLeft'){e.preventDefault();fcMove(-1)}
+      return}
+    if(box.classList.contains('hide'))return;
     const key=e.key.toLowerCase();let i='abcde'.indexOf(key);if(i<0)i='12345'.indexOf(key);
     if(key==='n'){const c=curCard();mark(c);c&&c.scrollIntoView({block:'center',behavior:'smooth'});return}
     if(i<0)return;
     const c=curCard(),b=c&&c.querySelectorAll('.opt')[i];if(!b)return;
     e.preventDefault();b.click();
     const nx=curCard();mark(nx);nx&&nx.scrollIntoView({block:'center',behavior:'smooth'});
-  });
+  };
+  document.addEventListener('keydown',kd);
 
   buildMCQ();
 }
@@ -459,8 +535,25 @@ function review(root){
   root.classList.add('ql');
   const d=ld();
   const ids=Object.keys(d.miss).filter(id=>BYID[id]).sort((a,b)=>d.miss[b]-d.miss[a]);
-  root.innerHTML=`<h2>Review</h2><p class="lead" id="rl"></p><div id="rv"></div><h3 class="hh">History</h3><div id="hs"></div>`;
+  root.innerHTML=`<h2>Review</h2><h3 class="hh" style="margin-top:6px">Weak topics</h3><div class="wk" id="wk"></div><h3 class="hh">Starred</h3><div class="tools"><button id="ps" type="button">Practise starred</button></div><div id="sr"></div><h3 class="hh">Missed questions</h3><p class="lead" id="rl"></p><div id="rv"></div><h3 class="hh">History</h3><div id="hs"></div>`;
   const rv=root.querySelector('#rv'),rl=root.querySelector('#rl');
+  /* weak topics: stored per-topic totals plus the answers of the quiz in progress, weakest first */
+  const tm={};for(const t in d.topics){const r=d.topics[t];if(Array.isArray(r)&&r[1]>0)tm[t]=[r[0]|0,r[1]|0]}
+  if(d.cur){for(const id in d.cur.a||{}){const q=BYID[id];if(q){const r=tm[q.t]||(tm[q.t]=[0,0]);r[1]++;if(d.cur.a[id]===q.a)r[0]++}}
+    for(const k in d.cur.l||{}){const [di,i]=k.split('.'),p=L[di]&&L[di].pins[i];if(p){const r=tm[DT]||(tm[DT]=[0,0]);r[1]++;if(d.cur.l[k]===p[4])r[0]++}}}
+  const wt=Object.keys(tm).map(t=>({t,c:tm[t][0],n:tm[t][1],p:tm[t][0]/tm[t][1]})).sort((a,b)=>a.p-b.p||b.n-a.n),wk=root.querySelector('#wk');
+  wk.innerHTML=wt.length?wt.map((r,i)=>{const p=Math.round(r.p*100);return `<div class="wr"><div class="wh"><b>${esc(r.t)}</b><span>${p}% \u00b7 ${r.c}/${r.n}</span></div><div class="wb"><i style="width:${p}%;background:${p<50?'var(--no)':p<75?'#e7a600':'var(--ok)'}"></i></div><button type="button" data-i="${i}">Practise this topic</button></div>`}).join(''):'<p class="empty">Finish a quiz or exam to see which topics need work.</p>';
+  wk.onclick=e=>{const b=e.target.closest('button[data-i]');if(!b)return;const t=wt[+b.dataset.i].t;practise(ITEMS.filter(q=>q.t===t).map(q=>q.id))};
+  /* starred questions */
+  const sr=root.querySelector('#sr'),ps=root.querySelector('#ps');
+  const sids=Object.keys(d.star).filter(id=>BYID[id]);
+  const scount=()=>{const n=sr.querySelectorAll('.card').length;ps.disabled=!n;ps.textContent=n?`Practise starred (${n})`:'Practise starred';if(!n&&!sr.querySelector('.empty'))sr.innerHTML='<p class="empty">Tap the star on any question to save it here.</p>'};
+  sids.forEach(id=>{const q=BYID[id];
+    const rm=()=>{const c=sr.querySelector(`.card[data-id="${id}"]`);upd(x=>{delete x.star[id]});c&&c.remove();scount()};
+    const c=mcqCard(q,q.t,{onStar:on=>{if(!on)rm()}});c.dataset.id=id;
+    const bar=document.createElement('div');bar.className='act';bar.innerHTML='<button type="button">Unstar</button>';bar.firstChild.onclick=rm;c.appendChild(bar);sr.appendChild(c)});
+  scount();
+  ps.onclick=()=>{const ids=[...sr.querySelectorAll('.card')].map(c=>c.dataset.id);if(ids.length)practise(ids)};
   const count=()=>{const n=rv.querySelectorAll('.card').length;rl.textContent=n?`${n} missed question${n>1?'s':''}. Answer again: when you get one right you can remove it or keep it.`:'';
     if(!n&&!rv.querySelector('.empty')){rl.textContent='';rv.innerHTML='<p class="empty">Nothing to review. Questions you get wrong in the quiz will appear here.</p>'}};
   const mk=id=>{const q=BYID[id];
@@ -485,5 +578,7 @@ function review(root){
   if(d.hist.length){const b=document.createElement('button');b.className='clr';b.textContent='Clear history';b.onclick=()=>{upd(x=>{x.hist=[]});review(root)};hs.appendChild(b)}
 }
 
-window.ULQuiz={mount:mount,review:review,data:{ALL:ALL,L:L,shuffle:shuffle,upd:upd}};
+/* start a practice quiz from a list of question ids (starred or one topic); the saved full quiz is left untouched */
+function practise(ids){pend=shuffle(ids);if(qroot){qroot.innerHTML='';mount(qroot)}if(location.hash!=='#anatomy/upper-limb')location.hash='#anatomy/upper-limb'}
+window.ULQuiz={mount:mount,review:review,practise:practise,data:{ALL:ALL,L:L,shuffle:shuffle,upd:upd,dsvg:dsvg,tadd:tadd,starBtn:starBtn}};
 })();

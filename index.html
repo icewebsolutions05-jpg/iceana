@@ -44,7 +44,8 @@ body{min-height:100svh;overflow-x:hidden;background:var(--bg);color:var(--tx);fo
  .theme{width:44px;height:44px}
 }
 
-@media (max-width:420px){.nav ul{gap:2px;padding-left:88px}.nav a{padding:10px 10px;font-size:13px}.theme{width:36px;height:36px}}
+@media (max-width:420px){.nav ul{gap:0;padding:0 6px 0 84px}.nav a{padding:10px 8px;font-size:13px}.theme{width:36px;height:36px}}
+@media (max-width:380px){.nav ul{padding-left:74px}.nav a{padding:10px 6px;font-size:12px}}
 /* dark-mode hint: points at the theme button for 3s on entry, then fades */
 .hint{position:absolute;top:calc(100% + 12px);right:6px;z-index:3;padding:8px 14px;border-radius:14px;background:#0f1420;color:#fff;font-size:13px;font-weight:600;white-space:nowrap;opacity:0;visibility:hidden;transform:translateY(-6px);transition:opacity .45s ease,transform .45s ease,visibility 0s .45s;pointer-events:none}
 .hint::after{content:"";position:absolute;bottom:100%;right:16px;border:7px solid transparent;border-bottom-color:#0f1420;border-top:0}
@@ -88,6 +89,7 @@ body{min-height:100svh;overflow-x:hidden;background:var(--bg);color:var(--tx);fo
  <span class="pill" id="pill"></span>
  <li><a href="#" data-page="home" aria-current="page">Home</a></li>
  <li><a href="#anatomy" data-page="anatomy">Anatomy</a></li>
+ <li><a href="#exam" data-page="exam">Exam</a></li>
  <li><a href="#review" data-page="review">Review</a></li>
  <li><button class="theme" id="theme" type="button" aria-label="Switch theme">
   <svg class="moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -101,14 +103,13 @@ body{min-height:100svh;overflow-x:hidden;background:var(--bg);color:var(--tx);fo
 <section class="page" id="anatomy" hidden>
  <h2>Anatomy</h2>
  <p class="lead">Pick a topic to start a quiz.</p>
- <div class="cards"><a class="cbtn" href="#anatomy/upper-limb"><b>Upper Limb MCQ</b><span>100 tricky MCQs + 11 labelling diagrams</span></a>
- <a class="cbtn" href="#anatomy/upper-limb-exam"><b>Upper Limb Exam</b><span>Timed, one question at a time, with calculator</span></a></div>
+ <div class="cards"><a class="cbtn" href="#anatomy/upper-limb"><b>Upper Limb MCQ</b><span>100 tricky MCQs, 11 labelling diagrams and flashcards</span></a></div>
 </section>
 <section class="page" id="quiz" hidden>
  <a class="back" href="#anatomy">&larr; Anatomy</a>
  <div id="quizroot"><p class="qload">Loading quiz&hellip;</p></div>
 </section>
-<section class="page" id="exam" hidden><a class="back" href="#anatomy">&larr; Anatomy</a><div id="examroot"><p class="qload">Loading&hellip;</p></div></section>
+<section class="page" id="exam" hidden><div id="examroot"><p class="qload">Loading&hellip;</p></div></section>
 <section class="page" id="review" hidden><div id="reviewroot"><p class="qload">Loading&hellip;</p></div></section>
 <script>
 (function(){var d=document.documentElement,b=document.getElementById('theme'),t=document.getElementById('hint'),x,y;
@@ -153,7 +154,7 @@ document.getElementById('theme').onclick=function(){
   });
  }
  function route(init){
-  var h=location.hash.slice(1),k=h==='anatomy/upper-limb'?'quiz':h==='anatomy/upper-limb-exam'?'exam':h==='anatomy'?'anatomy':h==='review'?'review':'home',nav=k==='quiz'||k==='exam'?'anatomy':k;
+  var h=location.hash.slice(1),k=h==='anatomy/upper-limb'?'quiz':h==='exam'||h==='anatomy/upper-limb-exam'?'exam':h==='anatomy'?'anatomy':h==='review'?'review':'home',nav=k==='quiz'?'anatomy':k;
   for(var n in pages)pages[n].hidden=n!==k;
   links.forEach(function(a){if(a.dataset.page===nav)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
   if(!init)d.documentElement.classList.add('seen');

@@ -1,6 +1,6 @@
 /* Upper limb exam mode: loaded on demand, after quiz/upperlimb.js */
 (function(){
-const D=ULQuiz.data,ALL=D.ALL,L=D.L,shuffle=D.shuffle,upd=D.upd;
+const D=ULQuiz.data,ALL=D.ALL,L=D.L,shuffle=D.shuffle,upd=D.upd,dsvg=D.dsvg,tadd=D.tadd,starBtn=D.starBtn;
 const st=document.createElement('style');st.textContent=`
 .ex .cfg{display:grid;gap:12px;max-width:560px}
 .ex .cfg .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--bd);border-radius:12px;background:var(--card)}
@@ -61,14 +61,7 @@ const tf=s=>{s=Math.max(0,Math.round(s));return String(s/60|0).padStart(2,'0')+'
 function make(x){
   if(x.k==='m'){const q=x.q;return{k:'m',id:q.id,text:q.q,ans:q.a,exp:q.e,topic:q.t,opts:shuffle([q.a,...q.d]),pick:null,flag:false}}
   const d=L[x.di],p=d.pins[x.i];
-  return{k:'d',di:x.di,i:x.i,title:d.title,text:'What is the structure marked '+(x.i+1)+'?',ans:p[4],topic:'Diagram',opts:shuffle([p[4],...p[5]]),pick:null,flag:false};
-}
-function dsvg(di,i){
-  const d=L[di],img=d.img,k=img?(d.k||img.w/400*0.75):1,bw=28*k,bh=24*k,p=d.pins[i];
-  let [tx,ty,bx,by]=p;if(p[6]==='c'){bx=tx-bw/2;by=ty-bh/2}
-  const vb=img?`0 0 ${img.w} ${img.h}`:'0 0 400 320';
-  const pic=img?`<image href="${img.src}" x="0" y="0" width="${img.w}" height="${img.h}"/>${d.extra||''}`:d.shapes;
-  return `<svg viewBox="${vb}">${pic}<g class="pin"><line x1="${bx+bw/2}" y1="${by+bh/2}" x2="${tx}" y2="${ty}" stroke-width="${1.2*k}"/><circle cx="${tx}" cy="${ty}" r="${3.5*k}"/><rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="${5*k}" stroke-width="${1.6*k}"/><text x="${bx+bw/2}" y="${by+bh*0.7}" text-anchor="middle" font-size="${13*k}">${i+1}</text></g></svg>`;
+  return{k:'d',id:'d'+x.di+'.'+x.i,di:x.di,i:x.i,title:d.title,text:'What is the structure marked '+(x.i+1)+'?',ans:p[4],topic:'Diagram',opts:shuffle([p[4],...p[5]]),pick:null,flag:false};
 }
 
 const KEYS=[['DEG','deg','op'],['(','('],[')',')'],['⌫','bk','op'],['C','c','op'],
@@ -128,6 +121,7 @@ function mount(root){
     if(it.k==='m'){el.className='card mq';el.innerHTML=`<div class="qh"><span class="topic">MCQ · ${it.topic}</span><div class="q">${it.text}</div></div><div class="os"></div>`}
     else{el.className='card';el.innerHTML=`<span class="topic">Diagram · ${it.title}</span><div class="zr"><div class="q">${it.text}</div><button class="zb" type="button">Zoom</button></div><div class="sv">${dsvg(it.di,it.i)}</div><div class="os" style="margin-top:8px"></div>`;
       el.querySelector('.zb').onclick=function(){this.textContent=el.querySelector('.sv').classList.toggle('z')?'Fit':'Zoom'}}
+    const sh=el.querySelector('.qh')||el;sh.insertBefore(starBtn(it.id),sh.firstChild);
     const os=el.querySelector('.os');
     it.opts.forEach((t,n)=>{const b=document.createElement('button');b.className='opt'+(it.pick===t?' sel':'');b.dataset.v=t;b.textContent=String.fromCharCode(65+n)+'. '+t;b.onclick=()=>pick(n);os.appendChild(b)});
     c.appendChild(el);
@@ -149,7 +143,7 @@ function mount(root){
     S.items.forEach(it=>{const ok=it.pick===it.ans;if(it.pick==null)un++;if(ok)c++;if(it.k==='m'){mn++;if(ok)mc++}else{dn++;if(ok)dc++}});
     const n=S.items.length;
     upd(x=>{x.hist.unshift({t:Date.now(),ex:1,kind:S.kind,n:n,c:c,tm:tf(used),why:why});x.hist=x.hist.slice(0,50);
-      S.items.forEach(it=>{if(it.k==='m'&&it.pick!=null&&it.pick!==it.ans)x.miss[it.id]=(x.miss[it.id]||0)+1})});
+      S.items.forEach(it=>{if(it.pick==null)return;if(it.pick!==it.ans&&it.k==='m')x.miss[it.id]=(x.miss[it.id]||0)+1;tadd(x,it.k==='m'?it.topic:'Diagrams',it.pick===it.ans)})});
     const pct=Math.round(c/n*100);let h=`<div class="card"><div class="big">${c}/${n} · ${pct}%</div><div class="sumr"><span>Time ${tf(used)} of ${tf(S.dur)}</span>${mn?`<span>MCQs ${mc}/${mn}</span>`:''}${dn?`<span>Diagrams ${dc}/${dn}</span>`:''}<span>Unanswered ${un}</span><span>${S.kind}</span></div>${why?`<p class="warn">Submitted automatically: ${why}.</p>`:''}<div class="act" style="margin-top:12px"><button id="xnew">New exam</button><button id="xwr">Show wrong only</button></div></div><div id="xl">`;
     S.items.forEach((it,i)=>{const cls=it.pick==null?'na':it.pick===it.ans?'ok':'no';
       h+=`<div class="rrow ${cls}" data-c="${cls}"><b>${i+1}.</b> ${it.k==='m'?it.text:it.title+' · structure '+(S.items[i].i+1)}<div class="m">${it.pick==null?'Not answered':'Your answer: '+it.pick}${cls==='ok'?' ✓':''}</div>${cls!=='ok'?`<div class="m">Correct: <b>${it.ans}</b></div>`:''}${it.exp&&cls!=='ok'?`<div class="m">${it.exp}</div>`:''}</div>`});
@@ -161,7 +155,7 @@ function mount(root){
   /* leaving the tab, minimising the app, or leaving the page ends the exam */
   document.addEventListener('visibilitychange',()=>{if(document.hidden)submit('you left the tab or minimised the app')});
   addEventListener('pagehide',()=>submit('you left the page'));
-  addEventListener('hashchange',()=>{if(location.hash!=='#anatomy/upper-limb-exam')submit('you left the exam page')});
+  addEventListener('hashchange',()=>{if(!/^#(exam|anatomy\/upper-limb-exam)$/.test(location.hash))submit('you left the exam page')});
 
   /* ---------- calculator ---------- */
   let expr='',ans=0,deg=true,fresh=false;
