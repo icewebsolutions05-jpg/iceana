@@ -1,0 +1,66 @@
+# Save as: .github/workflows/unzip.yml
+# Upload a .zip to the repo root (e.g. site.zip) and push to main. This workflow
+# unpacks it into the repo root, deletes the zip, and commits the result.
+name: Unpack zip into repo root
+
+on:
+  push:
+    branches: [main]
+    paths: ['*.zip']          # root-level zips only
+  workflow_dispatch:
+    inputs:
+      zip_path:
+        description: 'Zip to unpack (default: every root-level *.zip)'
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: unpack-zip
+  cancel-in-progress: false
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unpack
+        env:
+          ZIP_INPUT: ${{ inputs.zip_path }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          if [ -n "${ZIP_INPUT:-}" ]; then zips=("$ZIP_INPUT"); else zips=(*.zip); fi
+          [ ${#zips[@]} -gt 0 ] || { echo "No zip found"; exit 0; }
+
+          for z in "${zips[@]}"; do
+            echo "::group::$z"
+            tmp=$(mktemp -d)
+            unzip -q -o "$z" -d "$tmp"
+            rm -rf "$tmp/__MACOSX"; find "$tmp" -name .DS_Store -delete
+
+            # If the zip holds one wrapper folder (e.g. iceana-main/), step inside it
+            src="$tmp"
+            mapfile -t top < <(ls -A "$tmp")
+            if [ ${#top[@]} -eq 1 ] && [ -d "$tmp/${top[0]}" ]; then src="$tmp/${top[0]}"; fi
+
+            # Copy into the repo root; never touch .git or the workflows themselves
+            rm -rf "$src/.git" "$src/.github"
+            cp -a "$src"/. ./
+            git rm -q --cached -- "$z" 2>/dev/null || true
+            rm -f -- "$z"
+            rm -rf "$tmp"
+            echo "::endgroup::"
+          done
+
+      - name: Commit and push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then echo "Nothing changed"; exit 0; fi
+          git commit -m "Unpack zip into repo root [skip ci]"
+          git push
+          
