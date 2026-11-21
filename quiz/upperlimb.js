@@ -480,10 +480,10 @@ function review(root){
   let h='';
   if(d.cur){let md=0,mc=0;for(const id in d.cur.a||{})if(BYID[id]){md++;if(d.cur.a[id]===BYID[id].a)mc++}
     const lg=Object.keys(d.cur.l||{}).length;if(md+lg)h+=`<div class="hrow"><span><b>In progress</b> · ${fmt(d.cur.t||Date.now())}</span><span>MCQ ${mc}/${md} (${pc(mc,md)}) · Labelling ${lg} answered</span></div>`}
-  d.hist.forEach(r=>{h+=`<div class="hrow"><span>${fmt(r.t)}</span><span>MCQ ${r.m[0]}/${r.m[1]} (${pc(r.m[0],r.m[1])}) · Labelling ${r.l[0]}/${r.l[1]} (${pc(r.l[0],r.l[1])})</span></div>`});
+  d.hist.forEach(r=>{if(r.ex){h+=`<div class="hrow"><span>${fmt(r.t)} · <b>Exam</b> · ${r.kind}</span><span>${r.c}/${r.n} (${pc(r.c,r.n)}) · ${r.tm}${r.why?' · auto-submitted':''}</span></div>`;return}h+=`<div class="hrow"><span>${fmt(r.t)}</span><span>MCQ ${r.m[0]}/${r.m[1]} (${pc(r.m[0],r.m[1])}) · Labelling ${r.l[0]}/${r.l[1]} (${pc(r.l[0],r.l[1])})</span></div>`});
   hs.innerHTML=h||'<p class="empty">No finished tests yet. Press "Finish &amp; restart" in the quiz to save a result here.</p>';
   if(d.hist.length){const b=document.createElement('button');b.className='clr';b.textContent='Clear history';b.onclick=()=>{upd(x=>{x.hist=[]});review(root)};hs.appendChild(b)}
 }
 
-window.ULQuiz={mount:mount,review:review};
+window.ULQuiz={mount:mount,review:review,data:{ALL:ALL,L:L,shuffle:shuffle,upd:upd}};
 })();
