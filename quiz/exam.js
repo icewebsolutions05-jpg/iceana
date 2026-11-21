@@ -9,11 +9,6 @@ const st=document.createElement('style');st.textContent=`
 .ex .seg{display:flex;gap:8px;flex-wrap:wrap}
 .ex .seg button{flex:1 1 130px;min-height:46px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);cursor:pointer;font-size:.92rem}
 .ex .seg button.on{background:var(--brand);border-color:var(--brand);color:#fff}
-.ex .topics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
-.ex .topics label{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--card);font-size:.9rem}
-.ex .topics input{width:18px;height:18px;accent-color:var(--brand)}
-.ex .topic-actions{display:flex;gap:8px;margin-top:8px}
-.ex .topic-actions button{border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:9px;padding:8px 12px;cursor:pointer}
 .ex .go{min-height:50px;border:0;border-radius:12px;background:var(--brand);color:#fff;font-size:1rem;font-weight:600;cursor:pointer}
 .ex .warn{margin:0;padding:10px 12px;border-radius:10px;background:var(--nob);color:var(--no);font-size:.88rem}
 .ex .xh{position:sticky;top:calc(var(--nav-top) + var(--nav-h) + 6px);z-index:5;background:var(--bg);display:flex;gap:6px;align-items:center;padding:6px 0 8px}
@@ -58,11 +53,10 @@ const st=document.createElement('style');st.textContent=`
  .ex .xp{display:block;position:sticky;top:calc(var(--nav-top) + var(--nav-h) + 76px)}.ex #xpal,.ex #xpc{display:none}}
 `;document.head.appendChild(st);
 
-const TOPICS=[...new Set(ALL.map(q=>q.t))];
 const MP=ALL.map(q=>({k:'m',q}));
 const DP=[];L.forEach((d,di)=>d.pins.forEach((p,i)=>DP.push({k:'d',di,i})));
-const KINDS={b:'MCQs + labelling',m:'MCQs only',d:'Labelling only'};
-const poolOf=(k,selected)=>{const m=MP.filter(x=>selected.has(x.q.t));return k==='m'?m:k==='d'?DP:m.concat(DP)};
+const KINDS={b:'MCQs + diagrams',m:'MCQs only',d:'Diagrams only'};
+const poolOf=k=>k==='m'?MP:k==='d'?DP:MP.concat(DP);
 const tf=s=>{s=Math.max(0,Math.round(s));return String(s/60|0).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
 function make(x){
   if(x.k==='m'){const q=x.q;return{k:'m',id:q.id,text:q.q,ans:q.a,exp:q.e,topic:q.t,opts:shuffle([q.a,...q.d]),pick:null,flag:false}}
@@ -79,13 +73,12 @@ const KEYS=[['DEG','deg','op'],['(','('],[')',')'],['⌫','bk','op'],['C','c','o
 ['1','1'],['2','2'],['3','3'],['Ans','Ans'],['10ˣ','10^('],
 ['0','0','w2'],['.','.'],['=','=','eq w2']];
 
-const SHELL=`<h2>Upper Limb Osteology Exam</h2>
+const SHELL=`<h2>Upper Limb Exam</h2>
 <div id="xs"><p class="lead">One question at a time, timed. Leaving this tab or minimising the app submits the exam automatically.</p>
 <div class="cfg">
  <div class="row"><div>Number of questions<small id="xmax"></small></div><input id="xn" type="number" inputmode="numeric" min="1" value="20"></div>
  <div class="row"><div>Time (minutes)<small>Default: 1 minute per question</small></div><input id="xt" type="number" inputmode="numeric" min="1" max="300" value="20"></div>
- <div><div class="lead" style="margin:0 0 6px">Content</div><div class="seg" id="xk"><button data-k="b" class="on">MCQs + labelling</button><button data-k="m">MCQs only</button><button data-k="d">Labelling only</button></div></div>
- <div><div class="lead" style="margin:0 0 6px">Topics <small style="color:var(--mu)">Select or deselect the topics to include</small></div><div class="topics" id="xtopics"></div><div class="topic-actions"><button type="button" id="xall">Select all</button><button type="button" id="xnone">Deselect all</button></div></div>
+ <div><div class="lead" style="margin:0 0 6px">Content</div><div class="seg" id="xk"><button data-k="b" class="on">MCQs + diagrams</button><button data-k="m">MCQs only</button><button data-k="d">Diagrams only</button></div></div>
  <p class="warn">Switching tabs, minimising the app or leaving this page ends the exam and shows your result.</p>
  <button class="go" id="xgo">Start exam</button>
 </div></div>
@@ -105,13 +98,9 @@ function mount(root){
   const $=s=>root.querySelector(s);
   const xs=$('#xs'),xe=$('#xe'),xr=$('#xr'),calc=$('#calc'),mod=$('#xmod');
   let S=null,kind='b',touched=false;
-  const selected=new Set(TOPICS);
-  const topicBox=$('#xtopics');TOPICS.forEach((t,i)=>{const lab=document.createElement('label'),cb=document.createElement('input');cb.type='checkbox';cb.checked=true;cb.value=t;cb.onchange=()=>{if(cb.checked)selected.add(t);else selected.delete(t);sync()};lab.append(cb,document.createTextNode(t));topicBox.appendChild(lab)});
-  $('#xall').onclick=()=>{selected.clear();TOPICS.forEach(t=>selected.add(t));topicBox.querySelectorAll('input').forEach(c=>c.checked=true);sync()};
-  $('#xnone').onclick=()=>{selected.clear();topicBox.querySelectorAll('input').forEach(c=>c.checked=false);sync()};
 
   /* ---------- setup ---------- */
-  const maxN=()=>poolOf(kind,selected).length;
+  const maxN=()=>poolOf(kind).length;
   const sync=()=>{$('#xmax').textContent='Up to '+maxN();const n=Math.min(Math.max(+$('#xn').value||1,1),maxN());if(!touched)$('#xt').value=n};
   $('#xn').oninput=sync;$('#xt').oninput=()=>{touched=true};
   $('#xk').onclick=e=>{const b=e.target.closest('button');if(!b)return;kind=b.dataset.k;$('#xk').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));sync()};
@@ -120,7 +109,7 @@ function mount(root){
   /* ---------- exam ---------- */
   $('#xgo').onclick=()=>{
     const n=Math.min(Math.max(Math.round(+$('#xn').value)||1,1),maxN()),t=Math.min(Math.max(Math.round(+$('#xt').value)||1,1),300);
-    S={items:shuffle(poolOf(kind,selected)).slice(0,n).map(make),i:0,dur:t*60,start:Date.now(),endAt:Date.now()+t*60000,done:false,kind:KINDS[kind]};
+    S={items:shuffle(poolOf(kind)).slice(0,n).map(make),i:0,dur:t*60,start:Date.now(),endAt:Date.now()+t*60000,done:false,kind:KINDS[kind]};
     xs.hidden=true;xr.hidden=true;xe.hidden=false;calc.hidden=true;buildPal();show(0);tick();S.tmr=setInterval(tick,1000);scrollTo(0,0);
   };
   function tick(){if(!S||S.done)return;const r=Math.ceil((S.endAt-Date.now())/1000);const e=$('#xtm');e.textContent=tf(r);e.classList.toggle('low',r<=60);if(r<=0)submit('Time is up')}

@@ -12,7 +12,7 @@ function mount(root,slug){
  function svg(it){var d=it.dg,p=it.p,k=d.w/400*.75,bw=28*k,bh=24*k,bx=p[2],by=p[3];
   return '<svg viewBox="0 0 '+d.w+' '+d.h+'"><image href="'+d.img+'" width="'+d.w+'" height="'+d.h+'"/><g class="pn"><line x1="'+(bx+bw/2)+'" y1="'+(by+bh/2)+'" x2="'+p[0]+'" y2="'+p[1]+'" style="stroke-width:'+1.5*k+'px"/><circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+4*k+'"/><rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="'+bh+'" rx="'+5*k+'"/><text x="'+(bx+bw/2)+'" y="'+(by+bh*.75)+'" text-anchor="middle" style="font-size:'+18*k+'px">?</text></g></svg>'}
  function draw(){
-  var h='<div class="tabs"><button data-m="m" class="'+(mode==='m'?'on':'')+'">MCQs ('+D.mcq.length+')</button><button data-m="d" class="'+(mode==='d'?'on':'')+'">Labelling</button></div>';
+  var h='<div class="tabs"><button data-m="m" class="'+(mode==='m'?'on':'')+'">MCQs ('+D.mcq.length+')</button><button data-m="d" class="'+(mode==='d'?'on':'')+'">Diagrams</button></div>';
   if(!items.length){box.innerHTML=h+'<p class="mu">Loading…</p>';tabs();return}
   if(i>=items.length){var m=Object.keys(ld().miss||{}).length;box.innerHTML=h+'<div class="q">Score: '+score+' / '+items.length+' ('+Math.round(score/items.length*100)+'%)</div><p class="mu">'+m+' question(s) in your missed list.</p><button class="nx" id="rs">Restart</button>';tabs();box.querySelector('#rs').onclick=build;return}
   var it=items[i];
