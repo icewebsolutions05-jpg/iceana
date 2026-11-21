@@ -118,12 +118,13 @@ body{min-height:100svh;overflow-x:hidden;background:var(--bg);color:var(--tx);fo
 <section class="page" id="anatomy" hidden>
  <h2>Anatomy</h2>
  <p class="lead">Pick a topic to start a quiz.</p>
- <div class="cards"><a class="cbtn pic t-anatomy" href="#anatomy/upper-limb"><b>Upper Limb MCQ</b><span>100 tricky MCQs, 11 labelling diagrams and flashcards</span></a></div>
+ <div class="cards"><a class="cbtn pic t-anatomy" href="#anatomy/upper-limb"><b>Upper Limb MCQ</b><span>100 tricky MCQs, 11 labelling diagrams and flashcards</span></a><a class="cbtn pic t-anatomy" href="#anatomy/d/oll"><b>Lower Limb Osteology</b><span>100 MCQs and 19 labelling pins from the lecture slides</span></a></div>
 </section>
 <section class="page" id="quiz" hidden>
  <a class="back" href="#anatomy">&larr; Anatomy</a>
  <div id="quizroot"><p class="qload">Loading quiz&hellip;</p></div>
 </section>
+<section class="page" id="deck" hidden><div id="deckroot"></div></section>
 <section class="page" id="exam" hidden><div id="examroot"><p class="qload">Loading&hellip;</p></div></section>
 <section class="page" id="review" hidden><div id="reviewroot"><p class="qload">Loading&hellip;</p></div></section>
 <script>
@@ -141,7 +142,7 @@ document.getElementById('theme').onclick=function(){
 /* ===== tiny hash router: pages switch in place, nothing reloads, the quiz code is fetched only when first opened ===== */
 (function(){
  var d=document,pill=d.getElementById('pill'),links=d.querySelectorAll('.nav a[data-page]'),
- pages={home:d.querySelector('.hero'),anatomy:d.getElementById('anatomy'),quiz:d.getElementById('quiz'),review:d.getElementById('review'),exam:d.getElementById('exam')},
+ pages={home:d.querySelector('.hero'),anatomy:d.getElementById('anatomy'),quiz:d.getElementById('quiz'),review:d.getElementById('review'),deck:d.getElementById('deck'),exam:d.getElementById('exam')},
  qr=d.getElementById('quizroot'),rv=d.getElementById('reviewroot'),xroot=d.getElementById('examroot'),xl=0,mx=0,loading=0,mounted=0,first=1;
  function place(){
   var a=d.querySelector('.nav a[aria-current="page"]');if(!a||!a.offsetWidth)return;
@@ -168,14 +169,18 @@ document.getElementById('theme').onclick=function(){
    d.head.appendChild(s);
   });
  }
+ function ld(u,cb){var e=d.createElement('script');e.src=u;e.onload=cb;e.onerror=function(){dr.innerHTML='<p class="qload">Could not load.</p>'};d.head.appendChild(e)}
+ var dr=d.getElementById('deckroot');
+ function withDeck(sl){var go=function(){if(window.ULDecks&&ULDecks[sl])ULDeck.mount(dr,sl);else ld('quiz/d_'+sl+'.js',function(){ULDeck.mount(dr,sl)})};dr.innerHTML='<p class="qload">Loading&hellip;</p>';if(window.ULDeck)go();else ld('quiz/deck.js',go)}
  function route(init){
-  var h=location.hash.slice(1),k=h==='anatomy/upper-limb'?'quiz':h==='exam'||h==='anatomy/upper-limb-exam'?'exam':h==='anatomy'?'anatomy':h==='review'?'review':'home',nav=k==='quiz'?'anatomy':k;
+  var h=location.hash.slice(1),k=/^anatomy\/d\/\w+$/.test(h)?'deck':h==='anatomy/upper-limb'?'quiz':h==='exam'||h==='anatomy/upper-limb-exam'?'exam':h==='anatomy'?'anatomy':h==='review'?'review':'home',nav=k==='quiz'||k==='deck'?'anatomy':k;
   for(var n in pages)pages[n].hidden=n!==k;
   links.forEach(function(a){if(a.dataset.page===nav)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
   if(!init)d.documentElement.classList.add('seen');
   place();if(!init)scrollTo(0,0);
   if(k==='quiz')withQuiz(function(){if(!mounted){mounted=1;qr.innerHTML='';ULQuiz.mount(qr)}});
   if(k==='exam')withExam(function(){if(!mx){mx=1;xroot.innerHTML='';ULExam.mount(xroot)}});
+  if(k==='deck')withDeck(h.slice(10));
   if(k==='review')withQuiz(function(){ULQuiz.review(rv)});
  }
  addEventListener('hashchange',function(){route()});addEventListener('resize',place);addEventListener('load',place);

@@ -124,118 +124,6 @@ Q("The platysma lies in the:","Superficial fascia, extending over the clavicle",
 ]]
 ];
 
-const L_OLD=[
-{title:"1. Scapula, posterior view",
- shapes:`<polygon class="shape" points="110,50 235,85 265,140 190,270 120,285 105,160"/><polygon class="shape" points="108,122 270,80 276,94 112,140"/><ellipse class="shape" cx="302" cy="76" rx="32" ry="12" transform="rotate(-10 302 76)"/><ellipse class="shape" cx="268" cy="152" rx="13" ry="22"/>`,
- pins:[
- [110,52,28,18,"Superior angle",["Inferior angle","Lateral angle","Acromial angle","Glenoid angle"]],
- [165,88,105,8,"Supraspinous fossa",["Infraspinous fossa","Subscapular fossa","Greater scapular notch","Scapular notch"]],
- [200,108,185,8,"Spine of scapula",["Acromion","Coracoid process","Lateral border","Superior border"]],
- [310,72,345,20,"Acromion",["Coracoid process","Spine of scapula","Acromial angle","Glenoid cavity"]],
- [268,152,350,115,"Glenoid cavity",["Subscapular fossa","Coracoid process","Infraglenoid tubercle","Scapular notch"]],
- [232,205,335,200,"Lateral (axillary) border",["Medial (vertebral) border","Superior border","Inferior border","Spine of scapula"]],
- [120,284,60,290,"Inferior angle",["Superior angle","Lateral angle","Acromial angle","Costal angle"]],
- [106,170,20,165,"Medial (vertebral) border",["Lateral (axillary) border","Superior border","Spine of scapula","Costal border"]],
- [175,205,190,285,"Infraspinous fossa",["Supraspinous fossa","Subscapular fossa","Glenoid fossa","Infraglenoid fossa"]]
- ]},
-{title:"2. Scapula, anterior view",
- shapes:`<polygon class="shape" points="110,50 235,85 265,140 190,270 120,285 105,160"/><ellipse class="shape" cx="240" cy="66" rx="22" ry="9"/><ellipse class="shape" cx="305" cy="60" rx="30" ry="11" transform="rotate(-8 305 60)"/><ellipse class="shape" cx="268" cy="152" rx="13" ry="22"/>`,
- pins:[
- [175,175,20,205,"Subscapular fossa",["Supraspinous fossa","Infraspinous fossa","Glenoid fossa","Subacromial fossa"]],
- [238,66,235,10,"Coracoid process",["Acromion","Spine of scapula","Infraglenoid tubercle","Olecranon"]],
- [268,152,350,140,"Glenoid cavity",["Scapular notch","Coracoid process","Acromion","Subscapular fossa"]],
- [312,60,350,30,"Acromion",["Coracoid process","Spine of scapula","Glenoid cavity","Clavicular facet"]],
- [222,80,170,10,"Scapular notch",["Greater scapular notch","Glenoid notch","Suprascapular foramen","Acromial notch"]],
- [150,67,100,10,"Superior border",["Medial border","Lateral border","Inferior border","Spine"]],
- [233,215,330,230,"Lateral (axillary) border",["Medial (vertebral) border","Superior border","Neck of scapula","Spine"]],
- [120,284,60,290,"Inferior angle",["Superior angle","Lateral angle","Acromial angle","Costal angle"]]
- ]},
-{title:"3. Humerus, anterior view",
- shapes:`<circle class="shape" cx="140" cy="62" r="32"/><rect class="shape" x="166" y="90" width="42" height="150" rx="8"/><ellipse class="shape" cx="220" cy="70" rx="16" ry="22"/><ellipse class="shape" cx="182" cy="62" rx="10" ry="12"/><line class="ln" x1="193" y1="78" x2="193" y2="135"/><ellipse class="shape" cx="188" cy="237" rx="12" ry="8"/><circle class="shape" cx="216" cy="271" r="16"/><ellipse class="shape" cx="176" cy="272" rx="20" ry="14"/><ellipse class="shape" cx="150" cy="248" rx="12" ry="10"/><ellipse class="shape" cx="242" cy="248" rx="12" ry="10"/>`,
- pins:[
- [132,55,20,15,"Head of humerus",["Greater tubercle","Lesser tubercle","Capitulum","Trochlea"]],
- [182,60,20,65,"Lesser tubercle",["Greater tubercle","Deltoid tuberosity","Medial epicondyle","Head of humerus"]],
- [163,92,20,115,"Anatomical neck",["Surgical neck","Neck of radius","Intertubercular groove","Epiphyseal line of the shaft"]],
- [188,237,20,185,"Coronoid fossa",["Olecranon fossa","Radial fossa","Intertubercular groove","Trochlear notch"]],
- [150,248,20,225,"Medial epicondyle",["Lateral epicondyle","Trochlea","Capitulum","Lateral supracondylar ridge"]],
- [176,274,20,275,"Trochlea",["Capitulum","Trochlear notch","Medial epicondyle","Coronoid process"]],
- [222,68,345,15,"Greater tubercle",["Lesser tubercle","Deltoid tuberosity","Lateral epicondyle","Anatomical neck"]],
- [193,105,345,65,"Intertubercular groove",["Radial groove","Coronoid fossa","Subclavian groove","Olecranon fossa"]],
- [190,125,345,115,"Surgical neck",["Anatomical neck","Neck of the glenoid","Radial neck","Supracondylar region"]],
- [206,170,345,165,"Deltoid tuberosity",["Radial tuberosity","Ulnar tuberosity","Greater tubercle","Lateral epicondyle"]],
- [244,248,345,220,"Lateral epicondyle",["Medial epicondyle","Capitulum","Trochlea","Greater tubercle"]],
- [218,272,345,270,"Capitulum",["Trochlea","Head of radius","Lateral epicondyle","Radial fossa"]]
- ]},
-{title:"4. Humerus: nerve at risk in a fracture here",
- note:"Tap each box: which nerve is most at risk at that site?",
- shapes:`<circle class="shape" cx="140" cy="52" r="30"/><rect class="shape" x="168" y="70" width="44" height="170" rx="8"/><ellipse class="shape" cx="190" cy="265" rx="46" ry="18"/><path class="fatb" stroke="#d98b2b" stroke-width="3" d="M120 100 C150 112,190 112,235 98"/><path class="fatb" stroke="#d98b2b" stroke-width="3" d="M132 88 C165 115,205 155,238 195"/><path class="fatb" stroke="#d98b2b" stroke-width="3" d="M150 225 L150 290"/>`,
- pins:[
- [190,108,20,60,"Axillary nerve",["Radial nerve","Ulnar nerve","Musculocutaneous nerve","Suprascapular nerve"]],
- [195,150,345,100,"Radial nerve",["Axillary nerve","Median nerve","Ulnar nerve","Musculocutaneous nerve"]],
- [150,260,20,250,"Ulnar nerve",["Radial nerve","Median nerve","Axillary nerve","Musculocutaneous nerve"]],
- [195,238,345,200,"Median nerve (with brachial artery)",["Radial nerve","Ulnar nerve","Axillary nerve","Suprascapular nerve"]]
- ]},
-{title:"5. Clavicle, inferior view",
- shapes:`<path class="fat" stroke-width="24" d="M45 152 C120 120,160 192,220 162 S320 128,360 150"/><path class="fatb" stroke-width="1.5" d="M45 140 C120 108,160 180,220 150 S320 116,360 138" style="stroke-width:1.5"/>`,
- pins:[
- [46,152,20,60,"Sternal end",["Acromial end","Conoid tubercle","Costoclavicular impression","Trapezoid line"]],
- [82,150,60,230,"Impression for costoclavicular ligament",["Conoid tubercle","Subclavian groove","Trapezoid line","Deltoid tubercle"]],
- [190,170,180,240,"Subclavian groove",["Intertubercular groove","Radial groove","Conoid tubercle","Costoclavicular impression"]],
- [300,142,285,50,"Conoid tubercle",["Trapezoid line","Coracoid tubercle","Deltoid tuberosity","Subclavian groove"]],
- [335,145,345,100,"Trapezoid line",["Conoid tubercle","Oblique line","Subclavian groove","Acromial facet"]],
- [362,150,350,200,"Acromial end",["Sternal end","Conoid tubercle","Coracoid process","Trapezoid line"]]
- ]},
-{title:"6. Radius and ulna, anterior view (right)",
- shapes:`<polygon class="shape" points="145,62 168,62 170,110 182,240 192,282 128,282 140,240 150,110"/><polygon class="shape" points="198,38 232,38 232,72 222,112 218,250 226,285 205,285 200,250 196,112 190,62"/><ellipse class="shape" cx="156" cy="56" rx="16" ry="7"/><rect class="shape" x="172" y="125" width="24" height="105" opacity=".6"/>`,
- pins:[
- [215,38,300,8,"Olecranon",["Coronoid process","Ulnar styloid process","Radial tuberosity","Trochlea"]],
- [200,64,300,50,"Coronoid process",["Olecranon","Radial notch","Styloid process","Ulnar tuberosity"]],
- [156,56,20,18,"Head of radius",["Neck of radius","Capitulum","Head of ulna","Radial tuberosity"]],
- [166,96,20,70,"Radial tuberosity",["Ulnar tuberosity","Deltoid tuberosity","Dorsal tubercle","Radial styloid process"]],
- [185,175,345,150,"Interosseous membrane",["Annular ligament","Articular disc","Flexor retinaculum","Oblique cord"]],
- [135,282,20,255,"Radial styloid process",["Ulnar styloid process","Dorsal tubercle","Radial notch","Ulnar notch"]],
- [214,272,345,225,"Head of ulna",["Head of radius","Olecranon","Radial notch","Capitulum"]],
- [226,286,345,275,"Ulnar styloid process",["Radial styloid process","Coronoid process","Dorsal tubercle","Olecranon"]]
- ]},
-{title:"7. Carpal bones, anterior view (right hand)",
- shapes:`<rect class="shape" x="90" y="38" width="100" height="26" rx="6"/><rect class="shape" x="208" y="38" width="72" height="26" rx="6"/><ellipse class="shape" cx="110" cy="110" rx="26" ry="16"/><ellipse class="shape" cx="170" cy="102" rx="22" ry="16"/><ellipse class="shape" cx="230" cy="106" rx="22" ry="15"/><circle class="shape" cx="284" cy="122" r="12"/><rect class="shape" x="76" y="164" width="38" height="32" rx="8"/><rect class="shape" x="130" y="168" width="34" height="28" rx="6"/><rect class="shape" x="186" y="164" width="44" height="34" rx="8"/><rect class="shape" x="248" y="164" width="44" height="34" rx="8"/>`,
- pins:[
- [110,110,60,8,"Scaphoid",["Lunate","Trapezium","Trapezoid","Capitate"]],
- [170,100,130,8,"Lunate",["Scaphoid","Triquetrum","Capitate","Pisiform"]],
- [230,104,200,8,"Triquetrum",["Trapezium","Trapezoid","Lunate","Pisiform"]],
- [284,122,300,8,"Pisiform",["Triquetrum","Hamate","Lunate","Capitate"]],
- [95,180,50,270,"Trapezium",["Trapezoid","Scaphoid","Triquetrum","Capitate"]],
- [147,182,115,270,"Trapezoid",["Trapezium","Capitate","Triquetrum","Hamate"]],
- [208,181,180,270,"Capitate",["Hamate","Lunate","Trapezoid","Scaphoid"]],
- [270,181,250,270,"Hamate",["Capitate","Triquetrum","Pisiform","Trapezium"]]
- ]},
-{title:"8. Hand skeleton (right, palmar)",
- shapes:`<ellipse class="shape" cx="190" cy="232" rx="95" ry="20"/><path class="fat" stroke-width="14" d="M110 205 L98 168"/><path class="fat" stroke-width="12" d="M96 160 L82 128"/><path class="fat" stroke-width="11" d="M80 122 L70 98"/><rect class="shape" x="133" y="132" width="14" height="68" rx="5"/><rect class="shape" x="173" y="128" width="14" height="72" rx="5"/><rect class="shape" x="213" y="132" width="14" height="68" rx="5"/><rect class="shape" x="251" y="138" width="14" height="62" rx="5"/><rect class="shape" x="133" y="92" width="14" height="34" rx="5"/><rect class="shape" x="173" y="88" width="14" height="34" rx="5"/><rect class="shape" x="213" y="92" width="14" height="34" rx="5"/><rect class="shape" x="251" y="100" width="14" height="32" rx="5"/><rect class="shape" x="133" y="64" width="14" height="24" rx="5"/><rect class="shape" x="173" y="58" width="14" height="26" rx="5"/><rect class="shape" x="213" y="64" width="14" height="24" rx="5"/><rect class="shape" x="251" y="74" width="14" height="22" rx="5"/>`,
- pins:[
- [104,186,20,210,"1st metacarpal",["2nd metacarpal","Trapezium","Proximal phalanx of thumb","Scaphoid"]],
- [258,170,345,200,"5th metacarpal",["4th metacarpal","Hamate","3rd metacarpal","Proximal phalanx of little finger"]],
- [140,198,130,270,"Base of metacarpal",["Head of metacarpal","Shaft of metacarpal","Neck of metacarpal","Tuberosity of metacarpal"]],
- [140,134,20,130,"Head of metacarpal",["Base of metacarpal","Shaft of metacarpal","Head of proximal phalanx","Base of proximal phalanx"]],
- [140,108,20,75,"Proximal phalanx",["Middle phalanx","Distal phalanx","Metacarpal","Sesamoid bone"]],
- [180,72,215,8,"Middle phalanx",["Proximal phalanx","Distal phalanx","Metacarpal","Sesamoid bone"]],
- [71,98,20,25,"Distal phalanx of thumb",["Middle phalanx of thumb","Proximal phalanx of thumb","1st metacarpal","Distal phalanx of index finger"]],
- [180,127,300,60,"Metacarpophalangeal joint",["Proximal interphalangeal joint","Distal interphalangeal joint","Carpometacarpal joint","Intercarpal joint"]],
- [220,90,340,100,"Proximal interphalangeal joint",["Metacarpophalangeal joint","Distal interphalangeal joint","Carpometacarpal joint","Interphalangeal joint of the thumb"]]
- ]},
-{title:"9. Pectoral girdle, anterior view",
- shapes:`<rect class="shape" x="185" y="60" width="28" height="150" rx="6"/><rect class="shape" x="185" y="60" width="28" height="42" rx="6"/><path class="ln" d="M213 100 C285 100,300 180,282 262"/><path class="ln" d="M213 130 C270 132,285 190,268 262"/><polygon class="shape" points="300,85 372,100 356,235 330,205"/><path class="fat" stroke-width="12" d="M214 72 L332 62"/><rect class="shape" x="334" y="105" width="22" height="165" rx="8"/><circle class="shape" cx="345" cy="104" r="14"/>`,
- pins:[
- [199,75,20,70,"Manubrium",["Body of sternum","Xiphoid process","Sternal angle","Jugular notch"]],
- [214,72,120,10,"Sternoclavicular joint",["Acromioclavicular joint","Glenohumeral joint","Costochondral joint","Manubriosternal joint"]],
- [272,66,220,10,"Clavicle",["Scapula","First rib","Acromion","Coracoid process"]],
- [334,62,320,10,"Acromioclavicular joint",["Sternoclavicular joint","Glenohumeral joint","Coracoclavicular joint","Scapulothoracic joint"]],
- [345,110,362,58,"Glenohumeral joint",["Acromioclavicular joint","Elbow joint","Sternoclavicular joint","Subacromial bursa"]],
- [345,170,362,150,"Scapula",["Clavicle","Rib","Humerus","Acromion"]],
- [346,235,362,230,"Humerus",["Radius","Ulna","Scapula","Clavicle"]],
- [262,200,150,270,"Rib",["Costal cartilage","Sternum","Clavicle","Vertebra"]]
- ]}
-];
-
 const IMG={"p19":{"src":"quiz/img/p19.jpg","w":800,"h":850},"p20":{"src":"quiz/img/p20.jpg","w":800,"h":850},"p13":{"src":"quiz/img/p13.jpg","w":960,"h":590},"p14":{"src":"quiz/img/p14.jpg","w":1270,"h":555},"p27":{"src":"quiz/img/p27.jpg","w":1270,"h":870},"p9":{"src":"quiz/img/p9.jpg","w":1010,"h":590},"p35":{"src":"quiz/img/p35.jpg","w":920,"h":900},"p47":{"src":"quiz/img/p47.jpg","w":1018,"h":740},"p5":{"src":"quiz/img/p5.jpg","w":610,"h":660}};
 
 const SKIP='<rect class="skipbox" x="127" y="369" width="50" height="44" rx="7"/><text class="skiptxt" x="152" y="399" text-anchor="middle" font-size="26">D</text>';
@@ -323,7 +211,7 @@ const REAL=[
  [185,420,20,330,"Humerus",["Radius","Ulna","Scapula","Clavicle"]],
  [440,470,20,500,"Costal cartilage",["Rib","Sternum","Clavicle","Manubrium"]]]}
 ];
-const L=[...REAL,...L_OLD.filter(d=>/nerve|Carpal/i.test(d.title)).map(d=>({...d,title:d.title.replace(/^\d+\.\s*/,'')+' (schematic)'}))];
+const L=REAL;
 
 
 const st2=document.createElement('style');st2.textContent=`
