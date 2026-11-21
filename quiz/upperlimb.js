@@ -430,7 +430,7 @@ function review(root){
   if(d.cur){for(const id in d.cur.a||{}){const q=BYID[id];if(q){const r=tm[q.t]||(tm[q.t]=[0,0]);r[1]++;if(d.cur.a[id]===q.a)r[0]++}}
     for(const k in d.cur.l||{}){const [di,i]=k.split('.'),p=L[di]&&L[di].pins[i];if(p){const r=tm[DT]||(tm[DT]=[0,0]);r[1]++;if(d.cur.l[k]===p[4])r[0]++}}}
   const wt=Object.keys(tm).map(t=>({t,c:tm[t][0],n:tm[t][1],p:tm[t][0]/tm[t][1]})).sort((a,b)=>a.p-b.p||b.n-a.n),wk=root.querySelector('#wk');
-  wk.innerHTML=wt.length?wt.map((r,i)=>{const p=Math.round(r.p*100);return `<div class="wr"><div class="wh"><b>${esc(r.t)}</b><span>${p}% \u00b7 ${r.c}/${r.n}</span></div><div class="wb"><i style="width:${p}%;background:${p<50?'var(--no)':p<75?'#e7a600':'var(--ok)'}"></i></div><button type="button" data-i="${i}">Practise this topic</button></div>`}).join(''):'<p class="empty">Finish a quiz or exam to see which topics need work.</p>';
+  wk.innerHTML=wt.length?wt.map((r,i)=>{const p=Math.round(r.p*100);return `<div class="wr"><div class="wh"><b>${esc(r.t)}</b><span>${p}% \u00b7 ${r.c}/${r.n}</span></div><div class="wb"><i style="width:${p}%;background:${p<50?'var(--no)':p<75?'#e7a600':'var(--ok)'}"></i></div>${ITEMS.some(q=>q.t===r.t)?`<button type="button" data-i="${i}">Practise this topic</button>`:''}</div>`}).join(''):'<p class="empty">Finish a quiz or exam to see which topics need work.</p>';
   wk.onclick=e=>{const b=e.target.closest('button[data-i]');if(!b)return;const t=wt[+b.dataset.i].t;practise(ITEMS.filter(q=>q.t===t).map(q=>q.id))};
   /* starred questions */
   const sr=root.querySelector('#sr'),ps=root.querySelector('#ps');

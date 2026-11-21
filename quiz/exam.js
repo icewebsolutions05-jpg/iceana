@@ -1,4 +1,4 @@
-/* Upper limb exam mode: loaded on demand, after quiz/upperlimb.js */
+/* Exam mode: loaded on demand, after quiz/upperlimb.js. Pulls questions from any selected topic (upper limb + the lecture decks). */
 (function(){
 const D=ULQuiz.data,ALL=D.ALL,L=D.L,shuffle=D.shuffle,upd=D.upd,dsvg=D.dsvg,tadd=D.tadd,starBtn=D.starBtn;
 const st=document.createElement('style');st.textContent=`
@@ -46,6 +46,18 @@ const st=document.createElement('style');st.textContent=`
 .ex .ckeys{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}
 .ex .ckeys button{min-height:40px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx);cursor:pointer;font-size:.92rem;padding:0}
 .ex .ckeys .op{background:var(--pin)}.ex .ckeys .eq{background:var(--brand);color:#fff;border-color:var(--brand)}.ex .ckeys .w2{grid-column:span 2}
+.ex .tsel{display:grid;gap:10px}
+.ex .tsec{border:1px solid var(--bd);border-radius:12px;background:var(--card);padding:12px 14px}
+.ex .tsh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.ex .tsh b{font-size:.95rem}
+.ex .tsh button{min-height:36px;padding:0 12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:8px;cursor:pointer;font-size:.82rem}
+.ex .tl{display:grid;gap:6px}
+.ex .tc{display:flex;align-items:center;gap:10px;min-height:44px;padding:8px 12px;text-align:left;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);cursor:pointer;font-size:.92rem}
+.ex .tc::before{content:"";flex:none;width:18px;height:18px;border-radius:5px;border:2px solid var(--mu);display:inline-grid;place-items:center;color:#fff;font-size:12px;line-height:1}
+.ex .tc.on{border-color:var(--brand);background:rgba(8,128,232,.12)}
+.ex .tc.on::before{content:"\\2713";background:var(--brand);border-color:var(--brand)}
+.ex .tc small{margin-left:auto;color:var(--mu);font-size:.8rem;white-space:nowrap}
+.ex .go:disabled{opacity:.45;cursor:default}
 .ex .xmod{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.5);display:grid;place-items:center;padding:16px}
 .ex .xbox{background:var(--card);border-radius:16px;padding:18px;max-width:380px;width:100%}
 @media (max-width:899px){.ex .xcalc{left:8px;right:8px;bottom:8px;width:auto}}
@@ -53,15 +65,53 @@ const st=document.createElement('style');st.textContent=`
  .ex .xp{display:block;position:sticky;top:calc(var(--nav-top) + var(--nav-h) + 76px)}.ex #xpal,.ex #xpc{display:none}}
 `;document.head.appendChild(st);
 
-const MP=ALL.map(q=>({k:'m',q}));
-const DP=[];L.forEach((d,di)=>d.pins.forEach((p,i)=>DP.push({k:'d',di,i})));
+const TOPICS=[{name:'Anatomy',items:[
+ {id:'ul',name:'Upper Limb Osteology'},
+ {id:'oll',name:'Lower Limb Osteology'},
+ {id:'pect',name:'Pectoral Region and Shoulder'},
+ {id:'axil',name:'Axilla (Brachial Plexus Lecture)'},
+ {id:'axbp',name:'Axilla, Brachial Plexus and Arm'},
+ {id:'glut',name:'Gluteal Region'},
+ {id:'thigh',name:'Thigh: Anterior and Medial'},
+ {id:'post',name:'Posterior Thigh and Popliteal Fossa'},
+ {id:'foot',name:'Ankle and Foot'}]}];
+const TNAME={};TOPICS.forEach(s=>s.items.forEach(t=>TNAME[t.id]=t.name));
+const TIDS=Object.keys(TNAME),SELK='ice.exam.topics';
 const KINDS={b:'MCQs + diagrams',m:'MCQs only',d:'Diagrams only'};
-const poolOf=k=>k==='m'?MP:k==='d'?DP:MP.concat(DP);
 const tf=s=>{s=Math.max(0,Math.round(s));return String(s/60|0).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
+
+/* load a lecture deck's data on demand (the same files the Anatomy pages use) */
+const loadDeck=id=>new Promise((res,rej)=>{
+  if(window.ULDecks&&ULDecks[id])return res();
+  const e=document.createElement('script');e.src='quiz/d_'+id+'.js';e.onload=()=>res();e.onerror=()=>rej(new Error(id));document.head.appendChild(e)});
+
+/* every question of a topic, split into MCQs (m) and diagram pins (d) */
+const CACHE={};
+function pool(id){
+  if(CACHE[id])return CACHE[id];
+  const m=[],d=[];
+  if(id==='ul'){ALL.forEach(q=>m.push({k:'m',t:id,q}));L.forEach((g,di)=>g.pins.forEach((p,i)=>d.push({k:'d',t:id,di,i})))}
+  else{const g=window.ULDecks&&ULDecks[id];if(!g)return{m,d};
+    g.mcq.forEach((r,n)=>m.push({k:'m',t:id,n,r}));(g.dg||[]).forEach((dd,di)=>dd.pins.forEach((p,i)=>d.push({k:'d',t:id,di,i})))}
+  return CACHE[id]={m,d};
+}
+const poolOf=(kind,sel)=>{let o=[];sel.forEach(id=>{const p=pool(id);if(kind!=='d')o=o.concat(p.m);if(kind!=='m')o=o.concat(p.d)});return o};
+
+/* a pin drawn on a lecture-deck diagram, in the same style as the upper limb ones */
+function pinSvg(d,i){
+  const k=d.w/400*.75,bw=28*k,bh=24*k,p=d.pins[i],bx=p[2],by=p[3];
+  return `<svg viewBox="0 0 ${d.w} ${d.h}"><image href="${d.img}" x="0" y="0" width="${d.w}" height="${d.h}"/><g class="pin"><line x1="${bx+bw/2}" y1="${by+bh/2}" x2="${p[0]}" y2="${p[1]}" stroke-width="${1.2*k}"/><circle cx="${p[0]}" cy="${p[1]}" r="${3.5*k}"/><rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="${5*k}" stroke-width="${1.6*k}"/><text x="${bx+bw/2}" y="${by+bh*0.7}" text-anchor="middle" font-size="${13*k}">${i+1}</text></g></svg>`;
+}
 function make(x){
-  if(x.k==='m'){const q=x.q;return{k:'m',id:q.id,text:q.q,ans:q.a,exp:q.e,topic:q.t,opts:shuffle([q.a,...q.d]),pick:null,flag:false}}
-  const d=L[x.di],p=d.pins[x.i];
-  return{k:'d',id:'d'+x.di+'.'+x.i,di:x.di,i:x.i,title:d.title,text:'What is the structure marked '+(x.i+1)+'?',ans:p[4],topic:'Diagram',opts:shuffle([p[4],...p[5]]),pick:null,flag:false};
+  const src=TNAME[x.t];
+  if(x.k==='m'){
+    if(x.t==='ul'){const q=x.q;return{k:'m',ul:1,src,sub:q.t,id:q.id,text:q.q,ans:q.a,exp:q.e,topic:q.t,opts:shuffle([q.a,...q.d]),pick:null,flag:false}}
+    const r=x.r;return{k:'m',src,id:x.t+':m'+x.n,text:r[0],ans:r[1],exp:'',topic:src,opts:shuffle(r.slice(1,5)),pick:null,flag:false};
+  }
+  if(x.t==='ul'){const d=L[x.di],p=d.pins[x.i];
+    return{k:'d',ul:1,src,id:'d'+x.di+'.'+x.i,di:x.di,i:x.i,title:d.title,text:'What is the structure marked '+(x.i+1)+'?',ans:p[4],topic:'Diagrams',opts:shuffle([p[4],...p[5]]),pick:null,flag:false,svg:()=>dsvg(x.di,x.i)}}
+  const d=ULDecks[x.t].dg[x.di],p=d.pins[x.i];
+  return{k:'d',src,id:x.t+':d'+x.di+'.'+x.i,di:x.di,i:x.i,title:d.title,text:'What is the structure marked '+(x.i+1)+'?',ans:p[4],topic:src,opts:shuffle([p[4],...p[5]]),pick:null,flag:false,svg:()=>pinSvg(d,x.i)};
 }
 
 const KEYS=[['DEG','deg','op'],['(','('],[')',')'],['⌫','bk','op'],['C','c','op'],
@@ -73,11 +123,12 @@ const KEYS=[['DEG','deg','op'],['(','('],[')',')'],['⌫','bk','op'],['C','c','o
 ['1','1'],['2','2'],['3','3'],['Ans','Ans'],['10ˣ','10^('],
 ['0','0','w2'],['.','.'],['=','=','eq w2']];
 
-const SHELL=`<h2>Upper Limb Exam</h2>
+const SHELL=`<h2>Exam</h2>
 <div id="xs"><p class="lead">One question at a time, timed. Leaving this tab or minimising the app submits the exam automatically.</p>
 <div class="cfg">
  <div class="row"><div>Number of questions<small id="xmax"></small></div><input id="xn" type="number" inputmode="numeric" min="1" value="20"></div>
  <div class="row"><div>Time (minutes)<small>Default: 1 minute per question</small></div><input id="xt" type="number" inputmode="numeric" min="1" max="300" value="20"></div>
+ <div><div class="lead" style="margin:0 0 6px">Topics</div><div class="tsel" id="xtp"><p class="lead" style="margin:0">Loading topics&hellip;</p></div></div>
  <div><div class="lead" style="margin:0 0 6px">Content</div><div class="seg" id="xk"><button data-k="b" class="on">MCQs + diagrams</button><button data-k="m">MCQs only</button><button data-k="d">Diagrams only</button></div></div>
  <p class="warn">Switching tabs, minimising the app or leaving this page ends the exam and shows your result.</p>
  <button class="go" id="xgo">Start exam</button>
@@ -97,19 +148,44 @@ function mount(root){
   root.classList.add('ql','ex');root.innerHTML=SHELL;
   const $=s=>root.querySelector(s);
   const xs=$('#xs'),xe=$('#xe'),xr=$('#xr'),calc=$('#calc'),mod=$('#xmod');
-  let S=null,kind='b',touched=false;
+  let S=null,kind='b',touched=false,ready=false;
+  let sel=new Set(TIDS);
+  try{const v=JSON.parse(localStorage.getItem(SELK));if(Array.isArray(v))sel=new Set(v.filter(id=>TNAME[id]))}catch(e){}
+  const saveSel=()=>{try{localStorage.setItem(SELK,JSON.stringify([...sel]))}catch(e){}};
 
   /* ---------- setup ---------- */
-  const maxN=()=>poolOf(kind).length;
-  const sync=()=>{$('#xmax').textContent='Up to '+maxN();const n=Math.min(Math.max(+$('#xn').value||1,1),maxN());if(!touched)$('#xt').value=n};
+  const maxN=()=>poolOf(kind,[...sel]).length;
+  const cnt=id=>{const p=pool(id);return kind==='m'?p.m.length:kind==='d'?p.d.length:p.m.length+p.d.length};
+  function topics(){
+    const box=$('#xtp');box.innerHTML='';
+    TOPICS.forEach(sec=>{
+      const el=document.createElement('div');el.className='tsec';
+      const all=sec.items.every(t=>sel.has(t.id));
+      el.innerHTML='<div class="tsh"><b>'+sec.name+'</b><button type="button" data-all="1">'+(all?'Clear':'Select all')+'</button></div><div class="tl"></div>';
+      const tl=el.querySelector('.tl');
+      sec.items.forEach(t=>{const b=document.createElement('button');b.type='button';b.className='tc'+(sel.has(t.id)?' on':'');b.dataset.id=t.id;b.setAttribute('aria-pressed',sel.has(t.id));
+        b.innerHTML='<span>'+t.name+'</span><small>'+(ready?cnt(t.id):'…')+'</small>';tl.appendChild(b)});
+      el.onclick=e=>{const b=e.target.closest('button');if(!b)return;
+        if(b.dataset.all){const on=!sec.items.every(t=>sel.has(t.id));sec.items.forEach(t=>on?sel.add(t.id):sel.delete(t.id))}
+        else{const id=b.dataset.id;sel.has(id)?sel.delete(id):sel.add(id)}
+        saveSel();sync()};
+      box.appendChild(el)});
+  }
+  const sync=()=>{
+    const m=ready?maxN():0;
+    if(ready)topics();
+    $('#xmax').textContent=!ready?'Loading topics…':m?'Up to '+m+' from the selected topics':(sel.size?'No questions of this type in the selected topics':'Select at least one topic');
+    $('#xgo').disabled=!ready||!m;
+    if(!touched){const n=Math.min(Math.max(+$('#xn').value||1,1),Math.max(m,1));$('#xt').value=n}};
   $('#xn').oninput=sync;$('#xt').oninput=()=>{touched=true};
   $('#xk').onclick=e=>{const b=e.target.closest('button');if(!b)return;kind=b.dataset.k;$('#xk').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));sync()};
-  sync();
+  $('#xgo').disabled=true;sync();
+  Promise.all(TIDS.filter(id=>id!=='ul').map(loadDeck)).then(()=>{ready=true;sync()}).catch(()=>{$('#xtp').innerHTML='<p class="warn">Could not load every topic. <a href="" onclick="location.reload();return false">Retry</a></p>'});
 
   /* ---------- exam ---------- */
   $('#xgo').onclick=()=>{
-    const n=Math.min(Math.max(Math.round(+$('#xn').value)||1,1),maxN()),t=Math.min(Math.max(Math.round(+$('#xt').value)||1,1),300);
-    S={items:shuffle(poolOf(kind)).slice(0,n).map(make),i:0,dur:t*60,start:Date.now(),endAt:Date.now()+t*60000,done:false,kind:KINDS[kind]};
+    if(!ready)return;const chosen=[...sel],pl=poolOf(kind,chosen),n=Math.min(Math.max(Math.round(+$('#xn').value)||1,1),pl.length),t=Math.min(Math.max(Math.round(+$('#xt').value)||1,1),300);
+    if(!pl.length)return;S={items:shuffle(pl).slice(0,n).map(make),i:0,dur:t*60,start:Date.now(),endAt:Date.now()+t*60000,done:false,kind:KINDS[kind]+' · '+(chosen.length===TIDS.length?'all topics':chosen.length<=2?chosen.map(id=>TNAME[id]).join(', '):chosen.length+' topics')};
     xs.hidden=true;xr.hidden=true;xe.hidden=false;calc.hidden=true;buildPal();show(0);tick();S.tmr=setInterval(tick,1000);scrollTo(0,0);
   };
   function tick(){if(!S||S.done)return;const r=Math.ceil((S.endAt-Date.now())/1000);const e=$('#xtm');e.textContent=tf(r);e.classList.toggle('low',r<=60);if(r<=0)submit('Time is up')}
@@ -118,10 +194,10 @@ function mount(root){
   function show(i){
     S.i=i;const it=S.items[i],c=$('#xqc');c.innerHTML='';
     const el=document.createElement('div');
-    if(it.k==='m'){el.className='card mq';el.innerHTML=`<div class="qh"><span class="topic">MCQ · ${it.topic}</span><div class="q">${it.text}</div></div><div class="os"></div>`}
-    else{el.className='card';el.innerHTML=`<span class="topic">Diagram · ${it.title}</span><div class="zr"><div class="q">${it.text}</div><button class="zb" type="button">Zoom</button></div><div class="sv">${dsvg(it.di,it.i)}</div><div class="os" style="margin-top:8px"></div>`;
+    if(it.k==='m'){el.className='card mq';el.innerHTML=`<div class="qh"><span class="topic">MCQ · ${it.src}${it.sub?' · '+it.sub:''}</span><div class="q">${it.text}</div></div><div class="os"></div>`}
+    else{el.className='card';el.innerHTML=`<span class="topic">Diagram · ${it.src} · ${it.title}</span><div class="zr"><div class="q">${it.text}</div><button class="zb" type="button">Zoom</button></div><div class="sv">${it.svg()}</div><div class="os" style="margin-top:8px"></div>`;
       el.querySelector('.zb').onclick=function(){this.textContent=el.querySelector('.sv').classList.toggle('z')?'Fit':'Zoom'}}
-    const sh=el.querySelector('.qh')||el;sh.insertBefore(starBtn(it.id),sh.firstChild);
+    if(it.ul){const sh=el.querySelector('.qh')||el;sh.insertBefore(starBtn(it.id),sh.firstChild)}
     const os=el.querySelector('.os');
     it.opts.forEach((t,n)=>{const b=document.createElement('button');b.className='opt'+(it.pick===t?' sel':'');b.dataset.v=t;b.textContent=String.fromCharCode(65+n)+'. '+t;b.onclick=()=>pick(n);os.appendChild(b)});
     c.appendChild(el);
@@ -143,10 +219,10 @@ function mount(root){
     S.items.forEach(it=>{const ok=it.pick===it.ans;if(it.pick==null)un++;if(ok)c++;if(it.k==='m'){mn++;if(ok)mc++}else{dn++;if(ok)dc++}});
     const n=S.items.length;
     upd(x=>{x.hist.unshift({t:Date.now(),ex:1,kind:S.kind,n:n,c:c,tm:tf(used),why:why});x.hist=x.hist.slice(0,50);
-      S.items.forEach(it=>{if(it.pick==null)return;if(it.pick!==it.ans&&it.k==='m')x.miss[it.id]=(x.miss[it.id]||0)+1;tadd(x,it.k==='m'?it.topic:'Diagrams',it.pick===it.ans)})});
+      S.items.forEach(it=>{if(it.pick==null)return;if(it.pick!==it.ans&&it.k==='m'&&it.ul)x.miss[it.id]=(x.miss[it.id]||0)+1;tadd(x,it.k==='m'||!it.ul?it.topic:'Diagrams',it.pick===it.ans)})});
     const pct=Math.round(c/n*100);let h=`<div class="card"><div class="big">${c}/${n} · ${pct}%</div><div class="sumr"><span>Time ${tf(used)} of ${tf(S.dur)}</span>${mn?`<span>MCQs ${mc}/${mn}</span>`:''}${dn?`<span>Diagrams ${dc}/${dn}</span>`:''}<span>Unanswered ${un}</span><span>${S.kind}</span></div>${why?`<p class="warn">Submitted automatically: ${why}.</p>`:''}<div class="act" style="margin-top:12px"><button id="xnew">New exam</button><button id="xwr">Show wrong only</button></div></div><div id="xl">`;
     S.items.forEach((it,i)=>{const cls=it.pick==null?'na':it.pick===it.ans?'ok':'no';
-      h+=`<div class="rrow ${cls}" data-c="${cls}"><b>${i+1}.</b> ${it.k==='m'?it.text:it.title+' · structure '+(S.items[i].i+1)}<div class="m">${it.pick==null?'Not answered':'Your answer: '+it.pick}${cls==='ok'?' ✓':''}</div>${cls!=='ok'?`<div class="m">Correct: <b>${it.ans}</b></div>`:''}${it.exp&&cls!=='ok'?`<div class="m">${it.exp}</div>`:''}</div>`});
+      h+=`<div class="rrow ${cls}" data-c="${cls}"><b>${i+1}.</b> ${it.k==='m'?it.text:it.title+' · structure '+(S.items[i].i+1)}<div class="m">${it.src}</div><div class="m">${it.pick==null?'Not answered':'Your answer: '+it.pick}${cls==='ok'?' ✓':''}</div>${cls!=='ok'?`<div class="m">Correct: <b>${it.ans}</b></div>`:''}${it.exp&&cls!=='ok'?`<div class="m">${it.exp}</div>`:''}</div>`});
     xr.innerHTML=h+'</div>';xe.hidden=true;xr.hidden=false;
     $('#xnew').onclick=()=>{S=null;xr.hidden=true;xs.hidden=false;scrollTo(0,0)};
     let wo=false;$('#xwr').onclick=function(){wo=!wo;this.textContent=wo?'Show all':'Show wrong only';xr.querySelectorAll('.rrow').forEach(r=>{r.hidden=wo&&r.dataset.c==='ok'})};
