@@ -44,8 +44,10 @@ body{min-height:100svh;overflow-x:hidden;background:var(--bg);color:var(--tx);fo
  .theme{width:44px;height:44px}
 }
 
-@media (max-width:420px){.nav ul{gap:0;padding:0 6px 0 84px}.nav a{padding:10px 8px;font-size:13px}.theme{width:36px;height:36px}}
-@media (max-width:380px){.nav ul{padding-left:74px}.nav a{padding:10px 6px;font-size:12px}}
+@media (max-width:460px){.nav .nm{display:none}}
+@media (max-width:420px){.nav ul{gap:0;padding:0 6px 0 80px}.nav a{padding:10px 6px;font-size:12.5px}.theme{width:36px;height:36px}}
+@media (max-width:380px){.nav ul{padding-left:74px}.nav a{padding:10px 5px;font-size:12px}}
+@media (max-width:340px){.nav ul{padding-left:66px}.nav a{padding:10px 4px;font-size:11px}}
 /* dark-mode hint: points at the theme button for 3s on entry, then fades */
 .hint{position:absolute;top:calc(100% + 12px);right:6px;z-index:3;padding:8px 14px;border-radius:14px;background:#0f1420;color:#fff;font-size:13px;font-weight:600;white-space:nowrap;opacity:0;visibility:hidden;transform:translateY(-6px);transition:opacity .45s ease,transform .45s ease,visibility 0s .45s;pointer-events:none}
 .hint::after{content:"";position:absolute;bottom:100%;right:16px;border:7px solid transparent;border-bottom-color:#0f1420;border-top:0}
@@ -77,6 +79,13 @@ body{min-height:100svh;overflow-x:hidden;background:var(--bg);color:var(--tx);fo
 .cbtn.pic span{color:rgba(255,255,255,.9)}
 .cbtn.pic:hover{border-color:#fff}
 .t-anatomy{--img:url(img/tile-anatomy.webp)}.t-exam{--img:url(img/tile-exam.webp)}.t-review{--img:url(img/tile-review.webp)}
+.bars{display:grid;gap:12px;max-width:760px}
+.bar{display:flex;flex-direction:column;gap:4px;padding:20px 22px;border-radius:16px;border:1px solid rgba(128,140,170,.35);color:var(--tx);text-decoration:none;transition:border-color .2s,transform .2s}
+.bar b{font-size:1.25rem}.bar span{color:var(--mu);font-size:.9rem}
+.bar.pic{color:#fff;border-color:transparent;background:linear-gradient(rgba(8,47,107,.5),rgba(8,47,107,.78)),var(--img) center/cover no-repeat,var(--brand-dk);text-shadow:0 1px 6px rgba(0,0,0,.45)}
+.bar.pic span{color:rgba(255,255,255,.9)}
+a.bar:hover{border-color:var(--brand);transform:translateY(-2px)}a.bar.pic:hover{border-color:#fff}
+.bar.soon{border-style:dashed;opacity:.75}
 .back{display:inline-block;margin:0 0 14px;color:var(--brand);text-decoration:none;font-weight:600;font-size:.92rem}
 .qload{text-align:center;color:var(--mu);padding:40px 0}
 
@@ -103,6 +112,7 @@ body{min-height:100svh;overflow-x:hidden;background:var(--bg);color:var(--tx);fo
  <span class="pill" id="pill"></span>
  <li><a href="#" data-page="home" aria-current="page">Home</a></li>
  <li><a href="#anatomy" data-page="anatomy">Anatomy</a></li>
+ <li><a href="#3d" data-page="3d">3D<span class="nm"> Models</span></a></li>
  <li><a href="#exam" data-page="exam">Exam</a></li>
  <li><a href="#review" data-page="review">Review</a></li>
  <li><button class="theme" id="theme" type="button" aria-label="Switch theme">
@@ -126,6 +136,16 @@ body{min-height:100svh;overflow-x:hidden;background:var(--bg);color:var(--tx);fo
  <a class="back" href="#anatomy">&larr; Anatomy</a>
  <div id="quizroot"><p class="qload">Loading quiz&hellip;</p></div>
 </section>
+<section class="page" id="m3d" hidden>
+ <h2>3D Models</h2>
+ <p class="lead">Explore anatomy in 3D: rotate, zoom and tap to label.</p>
+ <div class="bars"><a class="bar pic t-anatomy" href="#3d/skeleton"><b>Skeleton</b><span>Tap any bone, girdle or region to see it labelled</span></a>
+ <div class="bar soon"><b>More coming later</b><span>New 3D models will appear here</span></div></div>
+</section>
+<section class="page" id="skel" hidden>
+ <a class="back" href="#3d">&larr; 3D Models</a>
+ <div id="skelroot"><p class="qload">Loading&hellip;</p></div>
+</section>
 <section class="page" id="deck" hidden><div id="deckroot"></div></section>
 <section class="page" id="exam" hidden><div id="examroot"><p class="qload">Loading&hellip;</p></div></section>
 <section class="page" id="review" hidden><div id="reviewroot"><p class="qload">Loading&hellip;</p></div></section>
@@ -144,7 +164,7 @@ document.getElementById('theme').onclick=function(){
 /* ===== tiny hash router: pages switch in place, nothing reloads, the quiz code is fetched only when first opened ===== */
 (function(){
  var d=document,pill=d.getElementById('pill'),links=d.querySelectorAll('.nav a[data-page]'),
- pages={home:d.querySelector('.hero'),anatomy:d.getElementById('anatomy'),quiz:d.getElementById('quiz'),review:d.getElementById('review'),deck:d.getElementById('deck'),exam:d.getElementById('exam')},
+ pages={home:d.querySelector('.hero'),anatomy:d.getElementById('anatomy'),quiz:d.getElementById('quiz'),review:d.getElementById('review'),deck:d.getElementById('deck'),'3d':d.getElementById('m3d'),skel:d.getElementById('skel'),exam:d.getElementById('exam')},
  qr=d.getElementById('quizroot'),rv=d.getElementById('reviewroot'),xroot=d.getElementById('examroot'),xl=0,mx=0,loading=0,mounted=0,first=1;
  function place(){
   var a=d.querySelector('.nav a[aria-current="page"]');if(!a||!a.offsetWidth)return;
@@ -174,8 +194,10 @@ document.getElementById('theme').onclick=function(){
  function ld(u,cb){var e=d.createElement('script');e.src=u;e.onload=cb;e.onerror=function(){dr.innerHTML='<p class="qload">Could not load.</p>'};d.head.appendChild(e)}
  var dr=d.getElementById('deckroot');
  function withDeck(sl){var go=function(){if(window.ULDecks&&ULDecks[sl])ULDeck.mount(dr,sl);else ld('quiz/d_'+sl+'.js',function(){ULDeck.mount(dr,sl)})};dr.innerHTML='<p class="qload">Loading&hellip;</p>';if(window.ULDeck)go();else ld('quiz/deck.js',go)}
+ var sk=0,sr=d.getElementById('skelroot');
+ function withSkel(){if(sk)return;sk=1;var s=d.createElement('script');s.src='quiz/skeleton3d.js';s.onload=function(){sr.innerHTML='';ULSkeleton.mount(sr)};s.onerror=function(){sk=0;sr.innerHTML='<p class="qload">Could not load. <a href="" onclick="location.reload();return false">Retry</a></p>'};d.head.appendChild(s)}
  function route(init){
-  var h=location.hash.slice(1),k=/^anatomy\/d\/\w+$/.test(h)?'deck':h==='anatomy/upper-limb'?'quiz':h==='exam'||h==='anatomy/upper-limb-exam'?'exam':h==='anatomy'?'anatomy':h==='review'?'review':'home',nav=k==='quiz'||k==='deck'?'anatomy':k;
+  var h=location.hash.slice(1),k=h==='3d'?'3d':h==='3d/skeleton'||h==='anatomy/skeleton'?'skel':/^anatomy\/d\/\w+$/.test(h)?'deck':h==='anatomy/upper-limb'?'quiz':h==='exam'||h==='anatomy/upper-limb-exam'?'exam':h==='anatomy'?'anatomy':h==='review'?'review':'home',nav=k==='quiz'||k==='deck'?'anatomy':k==='skel'?'3d':k;
   for(var n in pages)pages[n].hidden=n!==k;
   links.forEach(function(a){if(a.dataset.page===nav)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
   if(!init)d.documentElement.classList.add('seen');
@@ -183,6 +205,7 @@ document.getElementById('theme').onclick=function(){
   if(k==='quiz')withQuiz(function(){if(!mounted){mounted=1;qr.innerHTML='';ULQuiz.mount(qr)}});
   if(k==='exam')withExam(function(){if(!mx){mx=1;xroot.innerHTML='';ULExam.mount(xroot)}});
   if(k==='deck')withDeck(h.slice(10));
+  if(k==='skel')withSkel();
   if(k==='review')withQuiz(function(){ULQuiz.review(rv)});
  }
  addEventListener('hashchange',function(){route()});addEventListener('resize',place);addEventListener('load',place);
